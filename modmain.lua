@@ -65,7 +65,10 @@ Assets = {
 }
 
 AddMinimapAtlas("images/map_icons/klee.xml")
-AddModCharacter("klee", "FEMALE")
+
+-- GLOBAL env
+local require = GLOBAL.require
+local STRINGS = GLOBAL.STRINGS
 
 ----------------------------------------------------
 ---------------------- 描述 ------------------------
