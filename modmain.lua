@@ -1,5 +1,5 @@
 PrefabFiles = {
-	"klee", "klee_none"
+	"klee", "klee_none", "jumpy_dumpty", "minebomb"
 }
 
 Assets = {
@@ -57,6 +57,7 @@ Assets = {
 	Asset( "IMAGE", "images/ui/talents_klee/talent_icon_6.tex" ),
 	Asset( "ATLAS", "images/ui/talents_klee/talent_icon_6.xml" ),
 
+	-- 元素爆发图标
 	Asset( "ANIM", "anim/klee_energy.zip" ),
 	Asset( "ANIM", "anim/klee_anim.zip" ),
 
@@ -66,14 +67,11 @@ Assets = {
 
 AddMinimapAtlas("images/map_icons/klee.xml")
 
+GLOBAL.setmetatable(env,{__index=function(t,k) return GLOBAL.rawget(GLOBAL,k) end})
+
 -- GLOBAL env
 local require = GLOBAL.require
 local STRINGS = GLOBAL.STRINGS
-
-----------------------------------------------------
----------------------- 描述 ------------------------
-
-modimport("scripts/import/klee_description.lua")
 
 ------------------------------------------
 --技能参数
@@ -123,6 +121,28 @@ TUNING.KLEE_SKILL_ELEBURST_SORT =
     "CD",
     "ENERGY", 
 }
+
+--------------------- 设置定义 -----------------------
+
+TUNING.ELEMENTALBURST_KEY = GetModConfigData("key_elementalburst")
+
+TUNING.ELEMENTALSKILL_KEY = GetModConfigData("key_elementalskill")
+
+TUNING.KLEE_CONST_BREAK = GetModConfigData("const_work")
+
+TUNING.KLEE_BURN = GetModConfigData("const_burn")
+
+----------------------------------------------------
+---------------------- 描述 ------------------------
+
+modimport("scripts/import/klee_description.lua")
+----------------------- UI -------------------------
+
+modimport("scripts/import/kleeUI_postconstruct.lua")
+----------------------- SG -------------------------
+
+modimport("scripts/import/klee_sg.lua")
+
 
 local language = GetModConfigData("lang")
 if language == 0 then
