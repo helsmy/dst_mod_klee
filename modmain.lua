@@ -1,5 +1,6 @@
 PrefabFiles = {
-	"klee", "klee_none", "jumpy_dumpty", "minebomb"
+	"klee", "klee_none", "jumpy_dumpty", "minebomb",
+	"klee_proj", "dococotales", "fragments_of_innocence"
 }
 
 Assets = {
@@ -132,6 +133,8 @@ TUNING.KLEE_CONST_BREAK = GetModConfigData("const_work")
 
 TUNING.KLEE_BURN = GetModConfigData("const_burn")
 
+TUNING.KLEE_EXPLODE_LIGHT = GetModConfigData("explode_light")
+
 ----------------------------------------------------
 ---------------------- 描述 ------------------------
 
@@ -202,6 +205,27 @@ TUNING.KLEE_HUNGER = 150
 TUNING.KLEE_SANITY = 150
 
 TUNING.KLEE_BASEATK = 15
+
+-- 初始物品
+TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KLEE = {"dococotales"}
+TUNING.STARTING_ITEM_IMAGE_OVERRIDE.dococotales = {
+	atlas = "images/inventoryimages/dococotales.xml",
+	image = "dococotales.tex"
+}
+
+-- 武器
+TUNING.WEAPONEFFECT_DOCOCOTALES = {
+	"嘟嘟！大冒险\n·普通攻击命中敌人后的6秒内，重击造成的伤害提升16%；重击命中敌人后的6秒内，攻击力提升8%。",
+	"嘟嘟！大冒险\n·普通攻击命中敌人后的6秒内，重击造成的伤害提升20%；重击命中敌人后的6秒内，攻击力提升10%。",
+	"嘟嘟！大冒险\n·普通攻击命中敌人后的6秒内，重击造成的伤害提升24%；重击命中敌人后的6秒内，攻击力提升12%。",
+	"嘟嘟！大冒险\n·普通攻击命中敌人后的6秒内，重击造成的伤害提升28%；重击命中敌人后的6秒内，攻击力提升14%。",
+	"嘟嘟！大冒险\n·普通攻击命中敌人后的6秒内，重击造成的伤害提升32%；重击命中敌人后的6秒内，攻击力提升16%。",
+}
+TUNING.DOCOCOTALES_DAMAGE = 25
+-- 主要效果持续时间
+TUNING.DOCOCOTALES_EFFECT_DURATION = 6
+-- 附属效果攻击上升
+TUNING.DOCOCOTALES_SECONDARY_EFFECT_RATE = 0.551
 
 
 AddModCharacter("klee", "FEMALE")

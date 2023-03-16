@@ -312,7 +312,7 @@ configuration_options = {
 		default = true
 	},
 	{
-		name = "light",
+		name = "explode_light",
 		label = "Explode Light",
 		hover = "",
 		options = {

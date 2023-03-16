@@ -157,30 +157,7 @@ local klee_elementalskill = State{
 	        local facingangle = inst.Transform:GetRotation() * DEGREES
 	        local facedirection = Vector3(math.cos(-facingangle), 0, math.sin(-facingangle))
             CastJumpyDumpty(inst, 1, function (jumpy, attacker)
-                local x, y, z = jumpy.Transform:GetWorldPosition()
-                local ents = TheSim:FindEntities(x, y, z, 4, {"_combat"}, CANT_TAGS)
-                for i, v in pairs(TheSim:FindEntities(x, y, z, 4)) do
-                    if v:IsValid() and TUNING.KLEE_CONST_BREAK and v.components.workable ~= nil and
-                        v.components.workable:CanBeWorked() then
-                        v.components.workable:WorkedBy(jumpy, 10)
-                    end
-            
-                    if v:IsValid() and TUNING.KLEE_BURN and v.components.fueled == nil and v.components.burnable ~= nil and
-                        not v.components.burnable:IsBurning() and not v:HasTag("burnt") then
-                        v.components.burnable:Ignite()
-                    end
-                end
-                local old_state = attacker.components.combat.ignorehitrange
-				attacker.components.combat.ignorehitrange = true
-                for i, v in pairs(ents) do
-                    if v ~= jumpy and v:IsValid() and not v:IsInLimbo() then
-                        attacker.components.combat:DoAttack(v, nil, nil, 1, TUNING.KLEE_SKILL_ELESKILL.DMG[attacker.components.talents:GetTalentLevel(2)], "elementalskill")
-                        attacker.components.energyrecharge:GainEnergy(8)
-                        attacker.components.sanity:DoDelta(0.5)
-                        v:PushEvent("explosion", {explosive = jumpy})
-                    end
-                end
-                attacker.components.combat.ignorehitrange = old_state
+                jumpy.components.combateffect_klee:DoAttackAndExplode(attacker, 4, 8)
             end)
         end),
 

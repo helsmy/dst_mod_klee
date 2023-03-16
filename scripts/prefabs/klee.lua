@@ -20,6 +20,35 @@ local function OnLoad(inst)
     OnBecameHuman(inst)
 end
 
+--普通攻击倍率
+local function NormalATKRateFn(inst, target)
+	return TUNING.KLEE_SKILL_NORMALATK.ATK_DMG[inst.components.talents:GetTalentLevel(1)]
+end
+
+--重击倍率
+local function ChargeATKRateFn(inst, target)
+	return TUNING.KLEE_SKILL_NORMALATK.CHARGE_ATK_DMG[inst.components.talents:GetTalentLevel(1)]
+end
+
+local function CustomAttackFn(inst, target, instancemult, ischarge)
+	if ischarge then
+		-- TODO: 完成重击
+		inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
+	else
+		local weapon = inst.components.combat:GetWeapon()
+		if not weapon:HasTag("genshin_catalyst") then
+			inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
+		end
+		-- 临时将符合条件的武器的投射物设成可莉的投射物
+		-- 这样可莉的普攻就永远是一样的了
+		local old_proj = weapon.components.weapon.projectile
+		weapon.components.weapon:SetProjectile("klee_proj")
+		weapon.components.weapon:LaunchProjectile(inst, target)
+		weapon.components.weapon:SetProjectile(old_proj)
+	end
+end
+
+
 --元素战技
 local function elementalskillfn(inst)
 	if (inst.components.rider and inst.components.rider:IsRiding()) or inst.sg:HasStateTag("dead") then
@@ -137,6 +166,10 @@ local master_postinit = function(inst)
 	inst.components.combat.damagebonus = 0
 
 	inst.OnLoad = OnLoad
+
+	inst.normalattackdmgratefn = NormalATKRateFn
+	inst.chargeattackdmgratefn = ChargeATKRateFn
+	inst.customattackfn = CustomAttackFn
 end
 
 return MakePlayerCharacter("klee", prefabs, assets, common_postinit, master_postinit)

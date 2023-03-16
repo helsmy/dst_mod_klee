@@ -58,6 +58,7 @@ local function fn()
 		self.testtask = self.inst:DoPeriodicTask(0, MineTest)
 	end
 	inst.components.mine:Reset()
+	inst:AddComponent("combateffect_klee")
 
 	return inst
 end
