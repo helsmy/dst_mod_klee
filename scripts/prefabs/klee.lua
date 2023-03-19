@@ -51,7 +51,7 @@ local function ChargeSGFn(inst)
 			return "attack"
 		end
 	end
-	return "chargeattack"
+	return "klee_chargeattack"
 end
 
 local function AttackkeyFn(inst, weapon, target)
@@ -113,7 +113,29 @@ local function elementalskillfn(inst)
 	inst.sg:GoToState("klee_elementalskill")
 end
 
---元素爆发(测试)
+--元素爆发结束
+local function elementalburst_exitfn(inst)
+	if inst.burststate == true then
+		inst.burststate = false
+		inst._burststate:set(false)
+		inst.SparksnSplash:Remove()
+	end
+
+	if inst.components.inventory.isexternallyinsulated then
+		inst.components.inventory.isexternallyinsulated:RemoveModifier(inst)
+	end
+
+	-- local item = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
+	-- if item ~= nil and item.components.equippable then
+	-- 	inst.components.inventory:Equip(item)
+	-- else
+	-- 	inst.AnimState:ClearOverrideSymbol("swap_object")
+	-- 	inst.AnimState:Hide("ARM_CARRY")
+	-- 	inst.AnimState:Show("ARM_NORMAL")
+	-- end
+end
+
+--元素爆发
 local function elementalburstfn(inst)
     if (inst.components.rider and inst.components.rider:IsRiding()) or inst.sg:HasStateTag("dead") then
 	    return
@@ -122,6 +144,42 @@ local function elementalburstfn(inst)
 	if not inst.components.elementalcaster:outofcooldown("elementalburst") then
 	    return
 	end
+	local SparksnSplashEffect = function ()
+		local x, y, z = inst.Transform:GetWorldPosition()
+		local ents = TheSim:FindEntities(x, y, z, 8, {"_combat"}, {"INLIMBO", "player", "chester", "companion", "wall"})
+		local targets = {}
+		for i, v in ipairs(ents) do
+			if v ~= inst and v ~= inst.SparksnSplash then
+				targets[#targets+1] = v
+			end
+		end
+		-- 在符合要求的目标里随机找一个
+		local target = targets[math.random(1, #targets)]
+		-- 生成攻击火花
+		local sparks = SpawnPrefab("klee_multi_spark")
+		sparks.Transform:SetPosition(target.Transform:GetWorldPosition())
+		sparks:DoTaskInTime(1.4, sparks.Remove)
+		-- 再进行一次超小范围的AOE，随机攻击3-5次
+		local attack_count = math.random(3, 5)
+		for i = 1, attack_count do
+			sparks:DoTaskInTime(0.6+0.1*i, function ()
+				local fx = SpawnPrefab("explode_small")
+				fx.Transform:SetPosition(sparks.Transform:GetWorldPosition())
+				fx.Transform:SetScale(0.8, 0.8, 0.8)
+				sparks.components.combateffect_klee:DoAreaAttack(inst, 1.1, TUNING.KLEE_SKILL_ELEBURST.DMG[inst.components.talents:GetTalentLevel(1)], 0)
+			end)
+		end
+	end
+	inst.SparksnSplash = SpawnPrefab("sparks_n_splash")
+	inst.SparksnSplash.Follower:FollowSymbol(inst.GUID, "swap_body", 0, 0, 0)
+	inst.SparksnSplash.owner = inst
+	-- 0.5s发动一次，之后每隔2s一次，完成6次
+	inst.SparksnSplash:DoTaskInTime(0.5, function ()
+		SparksnSplashEffect()
+		inst.SparksnSplash:DoPeriodicTask(2, function ()
+			SparksnSplashEffect()
+		end)
+	end)
 
 	-- if inst.burststate then
 	-- 	elementalburst_exitfn(inst)
@@ -131,16 +189,16 @@ local function elementalburstfn(inst)
 	-- 	end
 	-- end
 
-	-- inst._burststate:set(true)
-	-- inst.resolve_stack = TakeChakraStack(inst)
-	-- inst.exittask = inst:DoTaskInTime(TUNING.RAIDENSKILL_ELEBURST.DURATION + 2, elementalburst_exitfn)
+	inst.burststate = true
+	inst._burststate:set(true)
+	inst.exittask = inst:DoTaskInTime(TUNING.KLEE_SKILL_ELEBURST.DURATION, elementalburst_exitfn)
 
 	-- inst:AddTag("stronggrip")
 
 	inst:PushEvent("cast_elementalburst", {energycost = TUNING.KLEE_SKILL_ELEBURST.ENERGY, element = 1})
 	TheWorld:PushEvent("cast_elementalburst", {energycost = TUNING.KLEE_SKILL_ELEBURST.ENERGY, element = 1})
 
-    --这块以后会被sg替代
+    -- 以后加一个元素爆发的动画
 	-- inst.sg:GoToState("klee_elementalburst")
 
 end
@@ -189,6 +247,19 @@ local common_postinit = function(inst)
 	inst.components.keyhandler_klee:AddActionListener(TUNING.ELEMENTALSKILL_KEY, {Namespace = "klee", Action = "elementalskill"}, "keyup", nil)
 	inst.components.keyhandler_klee:AddActionListener(TUNING.ELEMENTALBURST_KEY, {Namespace = "klee", Action = "elementalburst"}, "keyup", nil)
 
+    ----------------------------------------------------------------------------
+    --状态
+    inst.burststate = false
+	--网络变量
+	inst._burststate = net_bool(inst.GUID, "klee._burststate", "statedirty")
+	--不是主机
+	if not TheWorld.ismastersim then
+		inst:ListenForEvent("statedirty", function(inst)
+			inst.burststate = inst._burststate:value()
+		end)
+	end
+	----------------------------------------------------------------------------
+
 	inst.chargesgname = ChargeSGFn             
 end
 
@@ -231,6 +302,8 @@ local master_postinit = function(inst)
 	inst.normalattackdmgratefn = NormalATKRateFn
 	inst.chargeattackdmgratefn = ChargeATKRateFn
 	inst.customattackfn = CustomAttackFn
+
+	inst.elementalburst_exit = elementalburst_exitfn
 end
 
 return MakePlayerCharacter("klee", prefabs, assets, common_postinit, master_postinit)

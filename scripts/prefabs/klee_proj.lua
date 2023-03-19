@@ -9,7 +9,7 @@ local function OnHit(inst, attacker, target)
 	inst.SoundEmitter:PlaySound("dontstarve/common/dropwood")
 	SpawnPrefab("explode_small").Transform:SetPosition(inst.Transform:GetWorldPosition())
 
-	inst.components.combateffect_klee:DoAreaAttack(attacker, 1.5, 0)
+	inst.components.combateffect_klee:DoAreaAttack(attacker, 1.5, TUNING.KLEE_SKILL_NORMALATK.ATK_DMG[attacker.components.talents:GetTalentLevel(1)], 0)
 	inst.components.combateffect_klee:DoExplode(attacker, 1.3, false)
 	inst:Remove()
 end

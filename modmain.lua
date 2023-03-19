@@ -1,6 +1,12 @@
 PrefabFiles = {
-	"klee", "klee_none", "jumpy_dumpty", "minebomb",
-	"klee_proj", "dococotales", "fragments_of_innocence"
+	-- 人物
+	"klee", "klee_none", 
+	-- 武器
+	"klee_proj", "dococotales", "fragments_of_innocence",
+	-- 元素战技
+	"jumpy_dumpty", "minebomb",
+	-- 元素爆发
+	"sparks_n_splash", "klee_sparks"
 }
 
 Assets = {
@@ -88,7 +94,7 @@ TUNING.KLEE_SKILL_ELESKILL_COUNT = 2
 
 TUNING.KLEE_SKILL_ELESKILL = 
 {
-    CD = 20,
+    CD = 20*0.1,
     DURATION = 15,
     --LEVEL             1      2      3      4      5      6      7      8      9      10     11     12     13     14     15
     DMG =            {0.952, 1.020, 1.090, 1.190, 1.260, 1.330, 1.430, 1.520, 1.620, 1.710, 1.810, 1.900, 2.020, 2.020, 2.020},
@@ -97,7 +103,7 @@ TUNING.KLEE_SKILL_ELESKILL =
 
 TUNING.KLEE_SKILL_ELEBURST = 
 {
-    CD = 15,
+    CD = 15*0.1,
     ENERGY = 60, 
     DURATION = 10,
     --LEVEL             1      2      3      4      5      6      7      8      9      10     11     12     13     14     15

@@ -36,7 +36,7 @@ function CombatEffect_klee:DoExplode(attacker, region, burnt)
     ShakeCamera(self)
 end
 
-function CombatEffect_klee:DoAreaAttack(attacker, region, GainEnergy)
+function CombatEffect_klee:DoAreaAttack(attacker, region, instmulti, GainEnergy)
     local x, y, z = self.inst.Transform:GetWorldPosition()
 	local ents = TheSim:FindEntities(x, y, z, region, {"_combat"}, CANT_TAGS)
 
@@ -49,7 +49,7 @@ function CombatEffect_klee:DoAreaAttack(attacker, region, GainEnergy)
 	attacker.components.combat.ignorehitrange = true
 	for i, v in pairs(ents) do
 		if v ~= self.inst and v:IsValid() and not v:IsInLimbo() then
-			attacker.components.combat:DoAttack(v, nil, nil, 1, TUNING.KLEE_SKILL_NORMALATK.ATK_DMG[attacker.components.talents:GetTalentLevel(1)], "normal")
+			attacker.components.combat:DoAttack(v, nil, nil, 1, instmulti, nil)
 			attacker.components.sanity:DoDelta(0.5)
 			v:PushEvent("explosion", {explosive = self.inst})
 		end
@@ -57,10 +57,10 @@ function CombatEffect_klee:DoAreaAttack(attacker, region, GainEnergy)
 	attacker.components.combat.ignorehitrange = old_state
 end
 
-function CombatEffect_klee:DoAttackAndExplode(attacker, region, GainEnergy)
+function CombatEffect_klee:DoAttackAndExplode(attacker, region, instmulti, GainEnergy)
     -- destory everything!
     self:DoExplode(attacker, region, true)
-    self:DoAreaAttack(attacker, region, GainEnergy)
+    self:DoAreaAttack(attacker, region, instmulti, GainEnergy)
 end
 
 return CombatEffect_klee

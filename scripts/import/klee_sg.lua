@@ -262,7 +262,7 @@ local klee_elementalskill = State{
 	        local facingangle = inst.Transform:GetRotation() * DEGREES
 	        local facedirection = Vector3(math.cos(-facingangle), 0, math.sin(-facingangle))
             CastJumpyDumpty(inst, 1, function (jumpy, attacker)
-                jumpy.components.combateffect_klee:DoAttackAndExplode(attacker, 4, 8)
+                jumpy.components.combateffect_klee:DoAttackAndExplode(attacker, 4, TUNING.KLEE_SKILL_ELESKILL.DMG[attacker.components.talents:GetTalentLevel(2)],8)
             end)
         end),
 
