@@ -1,14 +1,33 @@
 --初始加载
 local MakePlayerCharacter = require "prefabs/player_common"
+local ElementalSkillFactoryKlee = require "widgets/elementalcaster_factory_klee"
 
 local assets = {
 	Asset("SCRIPT", "scripts/prefabs/player_common.lua"),
+	Asset("ANIM", "anim/ghost_klee_build.zip"),
+	Asset("ANIM", "anim/klee.zip"),
+	Asset("ANIM", "anim/klee_hat.zip")
+}
+
+local prefabs = {
+	"dococotales"
+}
+
+local starting_inventory = {
+	"dococotales"
 }
 
 local skillkeys = {
     TUNING.ELEMENTALSKILL_KEY,
 	TUNING.ELEMENTALBURST_KEY,
 }
+
+local function KleeHat(inst)
+	if inst.components.inventory:GetEquippedItem(EQUIPSLOTS.HEAD) == nil then
+		inst.AnimState:OverrideSymbol("swap_hat", "klee_hat", "swap_hat")
+		inst.AnimState:Show("HAT")
+	end
+end
 
 local function OnBecameHuman(inst)
 	inst.components.locomotor.walkspeed = 4
@@ -18,6 +37,29 @@ end
 local function OnLoad(inst)
     inst:ListenForEvent("ms_respawnedfromghost", OnBecameHuman)
     OnBecameHuman(inst)
+end
+
+local function ChargeSGFn(inst)
+	if TheWorld.ismastersim then
+		local weapon = inst.components.combat ~= nil and inst.components.combat:GetWeapon() or nil
+		if weapon == nil then
+			return "attack"
+		end
+	else
+		local equip = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS) or nil
+		if equip == nil then
+			return "attack"
+		end
+	end
+	return "chargeattack"
+end
+
+local function AttackkeyFn(inst, weapon, target)
+    if inst.burststate then
+		return "elementalburst"
+	else
+        return inst.sg:HasStateTag("chargeattack") and "charge" or "normal"
+	end
 end
 
 --普通攻击倍率
@@ -31,19 +73,26 @@ local function ChargeATKRateFn(inst, target)
 end
 
 local function CustomAttackFn(inst, target, instancemult, ischarge)
+	-- assets(false, "CustomAttackFn breakpoint")
+	print("attack status:", ischarge)
+	print("attack status chargesgname:", inst.chargesgname)
+	print("attack status chargesgname:", inst.chargesgname(inst))
+	print("attack status cancharge:", inst.cancharge)
+	local weapon = inst.components.combat:GetWeapon()
+	if weapon ==nil or not weapon:HasTag("genshin_catalyst") then
+		inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
+		return
+	end
 	if ischarge then
 		-- TODO: 完成重击
-		inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
+		print("Do Charge attack")
+		inst.sg:GoToState("klee_chargeattack")
 	else
-		local weapon = inst.components.combat:GetWeapon()
-		if not weapon:HasTag("genshin_catalyst") then
-			inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
-		end
 		-- 临时将符合条件的武器的投射物设成可莉的投射物
 		-- 这样可莉的普攻就永远是一样的了
 		local old_proj = weapon.components.weapon.projectile
 		weapon.components.weapon:SetProjectile("klee_proj")
-		weapon.components.weapon:LaunchProjectile(inst, target)
+		inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
 		weapon.components.weapon:SetProjectile(old_proj)
 	end
 end
@@ -59,6 +108,7 @@ local function elementalskillfn(inst)
 	    return
 	end
 
+	inst.components.elementalcaster:ConsumeElementalSkill()
 	inst:PushEvent("cast_elementalskill")
 	inst.sg:GoToState("klee_elementalskill")
 end
@@ -87,8 +137,8 @@ local function elementalburstfn(inst)
 
 	-- inst:AddTag("stronggrip")
 
-	inst:PushEvent("cast_elementalburst", {energycost = TUNING.KLEE_SKILL_ELEBURST.ENERGY, element = 4})
-	TheWorld:PushEvent("cast_elementalburst", {energycost = TUNING.KLEE_SKILL_ELEBURST.ENERGY, element = 4})
+	inst:PushEvent("cast_elementalburst", {energycost = TUNING.KLEE_SKILL_ELEBURST.ENERGY, element = 1})
+	TheWorld:PushEvent("cast_elementalburst", {energycost = TUNING.KLEE_SKILL_ELEBURST.ENERGY, element = 1})
 
     --这块以后会被sg替代
 	-- inst.sg:GoToState("klee_elementalburst")
@@ -108,6 +158,8 @@ local common_postinit = function(inst)
 	inst:AddTag("pyro")
 	inst:AddTag("catalyst_class")
 	inst:AddTag("genshin_character")
+
+	inst.character_description = STRINGS.CHARACTER_DESCRIPTIONS.klee
 
 	-- 天赋信息
 	inst.talents_path = "images/ui/talents_klee"
@@ -137,6 +189,7 @@ local common_postinit = function(inst)
 	inst.components.keyhandler_klee:AddActionListener(TUNING.ELEMENTALSKILL_KEY, {Namespace = "klee", Action = "elementalskill"}, "keyup", nil)
 	inst.components.keyhandler_klee:AddActionListener(TUNING.ELEMENTALBURST_KEY, {Namespace = "klee", Action = "elementalburst"}, "keyup", nil)
 
+	inst.chargesgname = ChargeSGFn             
 end
 
 local master_postinit = function(inst)
@@ -148,7 +201,8 @@ local master_postinit = function(inst)
 
 	--设置元素战技和元素爆发施放
 	inst:AddComponent("elementalcaster")
-	inst.components.elementalcaster:SetElementalSkill(TUNING.KLEE_SKILL_ELESKILL.CD)
+	ElementalSkillFactoryKlee(inst)
+	inst.components.elementalcaster:SetElementalSkill(TUNING.KLEE_SKILL_ELESKILL.CD, TUNING.KLEE_SKILL_ELESKILL_COUNT)
 	inst.components.elementalcaster:SetElementalBurst(TUNING.KLEE_SKILL_ELEBURST.CD, TUNING.KLEE_SKILL_ELEBURST.ENERGY)
 	
 	--天赋
@@ -159,11 +213,18 @@ local master_postinit = function(inst)
 	inst.components.hunger:SetMax(TUNING.KLEE_HUNGER)
 	inst.components.sanity:SetMax(TUNING.KLEE_SANITY)
 
+	-- 初始物品
+	inst.starting_inventory = starting_inventory
+
 	inst.components.hunger.hungerrate = TUNING.WILSON_HUNGER_RATE
 
 	inst.components.combat:SetDefaultDamage(TUNING.KLEE_BASEATK)
 	inst.components.combat.damagemultiplier = 1
 	inst.components.combat.damagebonus = 0
+
+	inst.components.combat.overrideattackkeyfn = AttackkeyFn
+
+	inst:DoPeriodicTask(FRAMES, KleeHat)
 
 	inst.OnLoad = OnLoad
 

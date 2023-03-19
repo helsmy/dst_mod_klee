@@ -10,6 +10,11 @@ local function plainintfunc(num)    --直接写,整数
     return string.format("%d", num) 
 end
 
+STRINGS.CHARACTER_TITLES.klee = "逃跑的太阳"
+STRINGS.CHARACTER_NAMES.klee = "可莉"
+STRINGS.CHARACTER_DESCRIPTIONS.klee = "西风骑士团禁闭室的常客，蒙德的爆破大师。人称「逃跑的太阳」。"
+STRINGS.CHARACTER_QUOTES.klee = "西风骑士团禁闭室的常客，蒙德的爆破大师。人称「逃跑的太阳」。"
+
 -- 先用中文，不管什么狗屁本地化
 -- 天赋描述
 TUNING.KLEE_TALENTS_DESC = {

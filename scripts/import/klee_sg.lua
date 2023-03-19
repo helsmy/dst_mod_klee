@@ -109,6 +109,110 @@ local function CastJumpyDumpty(caster, count, onhitfn)
     return jumpy_dumpty
 end
 
+local klee_chargeattack = State{
+	name = "chargeattack",
+	tags = { "chargeattack", "attack", "notalking", "nointerrupt", "abouttoattack", "autopredict" },
+
+	onenter = function(inst)
+        print("DoChargedAttack")
+        if inst.components.combat:InCooldown() then
+            inst.sg:RemoveStateTag("abouttoattack")
+            inst:ClearBufferedAction()
+            inst.sg:GoToState("idle", true)
+            return
+        end
+
+		if inst.components.playercontroller ~= nil then
+			inst.components.playercontroller:Enable(false)
+		end
+		inst.components.locomotor:Stop()
+		inst.components.locomotor:Clear()
+		inst:ClearBufferedAction()
+		inst.AnimState:PlayAnimation("klee_charge")
+	end,
+
+    timeline = 
+    {
+        TimeEvent(2*FRAMES, function (inst)
+            local x, y, z = inst.Transform:GetWorldPosition()
+            local angle = (inst.Transform:GetRotation() + 90) * DEGREES
+            local tx = 6 * math.sin(angle)
+            local tz = 6 * math.cos(angle)
+
+            local fx = SpawnPrefab("klee_charge_fx")
+            fx.Transform:SetPosition(x+tx, y, z+tz)
+            -- fx.spark = spark
+        end)
+    },
+
+	events = {
+		EventHandler("animqueueover", function(inst)
+			if inst.AnimState:AnimDone() then
+				inst.sg:GoToState("idle")
+			end
+		end),
+	},
+
+	onexit = function(inst)
+		if inst.components.playercontroller ~= nil then
+			inst.components.playercontroller:Enable(true)
+		end
+	end,
+}
+
+local klee_chargeattack_client = State{
+	name = "klee_chargeattack",
+	tags = {"chargeattack", "attack", "notalking", "nointerrupt", "abouttoattack" },
+
+	onenter = function(inst)
+        print("DoChargedAttack")
+        if inst.replica.combat ~= nil then
+            if inst.replica.combat:InCooldown() then
+                inst.sg:RemoveStateTag("abouttoattack")
+                inst:ClearBufferedAction()
+                inst.sg:GoToState("idle", true)
+                return
+            end
+            inst.replica.combat:StartAttack()
+        end
+		if inst.components.playercontroller ~= nil then
+			inst.components.playercontroller:Enable(false)
+		end
+		inst.components.locomotor:Stop()
+		inst.components.locomotor:Clear()
+		inst:ClearBufferedAction()
+		inst.AnimState:PlayAnimation("klee_charge")
+	end,
+
+    timeline = 
+    {
+        TimeEvent(2*FRAMES, function (inst)
+            local x, y, z = inst.Transform:GetWorldPosition()
+            local angle = (inst.Transform:GetRotation() + 90) * DEGREES
+            local tx = 6 * math.sin(angle)
+            local tz = 6 * math.cos(angle)
+
+            local fx = SpawnPrefab("klee_charge_fx")
+            fx.Transform:SetPosition(x+tx, y, z+tz)
+            -- fx.spark = spark
+        end)
+    },
+
+	events = {
+		EventHandler("animqueueover", function(inst)
+			if inst.AnimState:AnimDone() then
+				inst.sg:GoToState("idle")
+			end
+		end),
+	},
+
+	onexit = function(inst)
+		if inst.components.playercontroller ~= nil then
+			inst.components.playercontroller:Enable(true)
+		end
+	end,
+}
+
 --元素战技
 local klee_elementalskill = State{
     name = "klee_elementalskill",
@@ -131,6 +235,7 @@ local klee_elementalskill = State{
         -- inst.SoundEmitter:PlaySound("raiden_sound/sesound/raiden_eleskill")
 
         inst:AddTag("stronggrip")
+        inst.AnimState:PlayAnimation("throw")
     end,
 
     timeline=
@@ -268,15 +373,19 @@ local klee_elementalskill_client = State{
 
 --添加Status Graph
 local function SGWilsonPostInit(sg)
+    sg.states["klee_chargeattack"]   = klee_chargeattack
     sg.states["klee_elementalskill"] = klee_elementalskill
 end
 
 local function SGWilsonClientPostInit(sg)
+    sg.states["klee_chargeattack"]   = klee_chargeattack_client
     sg.states["klee_elementalskill"] = klee_elementalskill_client
 end
 
+AddStategraphState("SGwilson", klee_chargeattack)
 AddStategraphState("SGwilson", klee_elementalskill)
 
+AddStategraphState("SGwilson_client", klee_chargeattack_client)
 AddStategraphState("SGwilson_client", klee_elementalskill_client)
 
 AddStategraphPostInit("wilson", SGWilsonPostInit)

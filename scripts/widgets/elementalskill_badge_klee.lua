@@ -121,9 +121,13 @@ local elementalskill_badge = Class(Draggable_GenshinBtn, function(self, owner, i
 	self.clickoffset = Vector3(0, 0, 0)   --禁止按下移动
     
     self.percent = 0
-    local img = imgs[3]
-	self.image = self:AddChild(Image(img[1], img[2])) -- altas, tex
-    self.image:SetScale(1.7, 1.7, 1.7)
+    -- 技能0-2个可用的图标
+    self.images = {}
+    for i, v in ipairs(imgs) do
+        local image = self:AddChild(Image(v[1], v[2]))-- altas, tex
+        image:SetScale(1.7, 1.7, 1.7)
+        self.images[i] = image
+    end
 
     self.skillcdanim = self:AddChild(UIAnim())
     self.skillcdanim:GetAnimState():SetBank("genshincd_meter")
@@ -164,29 +168,46 @@ function elementalskill_badge:OnUpdate(dt)
         return
     end
     local cd = math.max(0, self.totalcd - (elementalcaster.CDTime - elementalcaster.elementalskill))
-    --print(cd)
-    --print("GetTime:"..self.owner.CDTime.."  ,Bursttime:"..self.owner.elementalskill)
+    -- print(cd)
+    -- print("GetTime:"..elementalcaster.CDTime.."  ,Bursttime:"..elementalcaster.elementalskill)
 
 	if self.owner:HasTag("playerghost") then
-		self.image:Hide()
+        for i, v in ipairs(self.images) do
+            v:Hide()
+        end
 		self.skillcd:Hide()
         self.skillcdanim:Hide()
         self.key_bg:Hide()
         self.key_text:Hide()
 	else
-		self.image:Show()
         self.key_bg:Show()
         self.key_text:Show()
         if cd > 0 then
-            self.skillcd:SetString(string.format("%.1f", cd))
-            self.skillcdanim:GetAnimState():SetPercent("recharge", 1 - cd/self.totalcd)
-		    self.skillcd:Show()
-            self.skillcdanim:Show()
-            self.image:SetTint(1, 1, 1, 0.6)
+            if elementalcaster.count == 0 then
+                self.skillcd:SetString(string.format("%.1f", cd))
+                self.skillcdanim:GetAnimState():SetPercent("recharge", 1 - cd/self.totalcd)
+                self.skillcd:Show()
+                self.skillcdanim:Show()
+                self.images[1]:Show()
+                self.images[2]:Hide()
+                self.images[3]:Hide()
+                self.images[1]:SetTint(1, 1, 1, 0.6)
+            else
+                for i, v in ipairs(self.images) do
+                    v:Hide()
+                end
+                self.images[elementalcaster.count+1]:Show()
+            end
         else
+            -- 冷却完成增加战技数量
+            elementalcaster:AddElementalSkillCount()
             self.skillcd:Hide()
             self.skillcdanim:Hide()
-            self.image:SetTint(1, 1, 1, 1)
+            for i, v in ipairs(self.images) do
+                v:Hide()
+            end
+            self.images[elementalcaster.count+1]:Show()
+            self.images[1]:SetTint(1, 1, 1, 1)
         end
 	end
 end

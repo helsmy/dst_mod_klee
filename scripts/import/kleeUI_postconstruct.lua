@@ -1,10 +1,10 @@
 local ElementalBurst_Badge = require "widgets/elementalburst_badge"
-local ElementalSkill_Badge = require "widgets/elementalskill_badge"
+local ElementalSkill_Badge = require "widgets/elementalskill_badge_klee"
 
 local klee_skill_imgs = {
-    {"images/skills/klee_skill_02.xml", "klee_skill_02.tex"},
-    {"images/skills/klee_skill_12.xml", "klee_skill_12.tex"},
-    {"images/skills/klee_skill_22.xml", "klee_skill_22.tex"},
+    {"images/ui/skills/klee_skill_02.xml", "klee_skill_02.tex"},
+    {"images/ui/skills/klee_skill_12.xml", "klee_skill_12.tex"},
+    {"images/ui/skills/klee_skill_22.xml", "klee_skill_22.tex"},
 }
 
 -- 技能按键的UI，直接照抄元素反应作者的雷电将军mod

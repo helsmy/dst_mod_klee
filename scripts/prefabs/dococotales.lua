@@ -71,9 +71,13 @@ local function fn()
 	inst.AnimState:SetBuild("dococotales")
 	inst.AnimState:PlayAnimation("idle")
 
+	inst:AddTag("sharp")
+    inst:AddTag("pointy")
+
 	MakeInventoryFloatable(inst)
 
 	inst:AddTag("weapon")
+	inst:AddTag("chargeattack_weapon")
 	inst:AddTag("thrown")
 
 	inst:AddTag("dococo")

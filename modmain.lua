@@ -35,14 +35,14 @@ Assets = {
 	Asset( "ATLAS", "images/names_gold_klee.xml" ),
 
 	--有关技能图标
-	Asset( "IMAGE", "images/skills/klee_skill_02.tex" ),
-	Asset( "ATLAS", "images/skills/klee_skill_02.xml" ),
+	Asset( "IMAGE", "images/ui/skills/klee_skill_02.tex" ),
+	Asset( "ATLAS", "images/ui/skills/klee_skill_02.xml" ),
 
-	Asset( "IMAGE", "images/skills/klee_skill_12.tex" ),
-	Asset( "ATLAS", "images/skills/klee_skill_12.xml" ),
+	Asset( "IMAGE", "images/ui/skills/klee_skill_12.tex" ),
+	Asset( "ATLAS", "images/ui/skills/klee_skill_12.xml" ),
 
-	Asset( "IMAGE", "images/skills/klee_skill_22.tex" ),
-	Asset( "ATLAS", "images/skills/klee_skill_22.xml" ),
+	Asset( "IMAGE", "images/ui/skills/klee_skill_22.tex" ),
+	Asset( "ATLAS", "images/ui/skills/klee_skill_22.xml" ),
 	
 	--天赋
 	Asset( "IMAGE", "images/ui/talents_klee/talent_icon_1.tex" ),
@@ -82,6 +82,9 @@ TUNING.KLEE_SKILL_NORMALATK =
     ATK_DMG =        {0.899, 0.967, 1.030, 1.120, 1.190, 1.260, 1.350, 1.440, 1.530, 1.620, 1.710, 1.710, 1.710, 1.710, 1.710},
     CHARGE_ATK_DMG = {1.570, 1.690, 1.810, 1.970, 2.090, 2.200, 2.360, 2.520, 2.680, 2.830, 3.000, 3.000, 3.000, 3.000, 3.000},
 }
+
+-- 战技可用次数
+TUNING.KLEE_SKILL_ELESKILL_COUNT = 2
 
 TUNING.KLEE_SKILL_ELESKILL = 
 {
@@ -204,7 +207,7 @@ TUNING.KLEE_HEALTH = 150
 TUNING.KLEE_HUNGER = 150
 TUNING.KLEE_SANITY = 150
 
-TUNING.KLEE_BASEATK = 15
+TUNING.KLEE_BASEATK = 10
 
 -- 初始物品
 TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KLEE = {"dococotales"}
