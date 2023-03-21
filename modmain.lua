@@ -225,7 +225,7 @@ TUNING.STARTING_ITEM_IMAGE_OVERRIDE.dococotales = {
 }
 
 -- 武器
-TUNING.WEAPONEFFECT_DOCOCOTALES = {
+TUNING.WEAPONEFFECT_DOCOCOTALES_DESC = {
 	"嘟嘟！大冒险\n·普通攻击命中敌人后的6秒内，重击造成的伤害提升16%；重击命中敌人后的6秒内，攻击力提升8%。",
 	"嘟嘟！大冒险\n·普通攻击命中敌人后的6秒内，重击造成的伤害提升20%；重击命中敌人后的6秒内，攻击力提升10%。",
 	"嘟嘟！大冒险\n·普通攻击命中敌人后的6秒内，重击造成的伤害提升24%；重击命中敌人后的6秒内，攻击力提升12%。",
@@ -237,6 +237,10 @@ TUNING.DOCOCOTALES_DAMAGE = 25
 TUNING.DOCOCOTALES_EFFECT_DURATION = 6
 -- 附属效果攻击上升
 TUNING.DOCOCOTALES_SECONDARY_EFFECT_RATE = 0.551
-
+-- 主要效果倍率
+TUNING.DOCOCOTALES_EFFECT_RATE = {
+	normal = {0.16, 0.20, 0.24, 0.28, 0.32},
+	charge = {0.08, 0.10, 0.12, 0.14, 0.16}
+}
 
 AddModCharacter("klee", "FEMALE")

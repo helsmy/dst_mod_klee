@@ -83,7 +83,7 @@ local function CustomAttackFn(inst, target, instancemult, ischarge)
 		return
 	end
 	if ischarge or inst.cancharge then
-		-- TODO: 完成重击
+		-- FIXME: 重击和元素爆发一起使用时有时候会崩溃
 		print("Do Charge attack")
 		inst.sg:GoToState("klee_chargeattack")
 	else

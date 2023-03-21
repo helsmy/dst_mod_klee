@@ -6,7 +6,25 @@ local assets = {
 
 local prefabs = {}
 
-local projectile = "klee_proj"
+--统一设置计时器的格式
+local function LocalStartTimer(inst, name, time)
+    if name == nil or time == nil or time < 0 then
+        return
+    end
+    if inst.components.timer:TimerExists(name) then
+        inst.components.timer:SetTimeLeft(name, time)
+    else
+        inst.components.timer:StartTimer(name, time)
+    end
+end
+
+local function OwnerOnDamageCalculated(owner, data)
+	local inst = owner.components.combat:GetWeapon()
+    if inst == nil then
+        return
+    end
+    inst:PushEvent("damagecalculated", {target = data.target, damage = data.damage, weapon = data.weapon, stimuli = data.stimuli, elementvalue = data.elementvalue, crit = data.crit, attackkey = data.attackkey})
+end
 
 local function OnEquip(inst, owner)
 	owner.AnimState:OverrideSymbol("swap_object", "swap_object", "swap_object")
@@ -15,7 +33,7 @@ local function OnEquip(inst, owner)
 	local atkup = TUNING.DOCOCOTALES_SECONDARY_EFFECT_RATE
 	owner.components.combat.external_atk_multipliers:SetModifier(inst, atkup, "all_dodocotales_base")
 
-	-- inst.components.weapon:SetProjectile(projectile)
+	owner:ListenForEvent("damagecalculated", OwnerOnDamageCalculated)
 end
 
 local function OnUnequip(inst, owner)
@@ -23,31 +41,31 @@ local function OnUnequip(inst, owner)
 	owner.AnimState:Show("ARM_normal")
 	owner.components.combat.external_atk_multipliers:RemoveModifier(inst, "all_dodocotales_base")
 
-	-- inst.components.weapon:SetProjectile(nil)
-	inst.components.weapon:SetRange(5)
+	owner:RemoveEventCallback("damagecalculated", OwnerOnDamageCalculated)
 end
 
-local function OnProj(inst, attacker, target, proj)
-	local AfterGetHit = function(proj, attacker, target)
-		if attacker.charge_rate ~= nil then
-			if not attacker.dococo_bonus1_cd then
-				local dococo_bonus1 = (16 + (inst.components.refine.rank - 1) * 4) / 100
-				attacker.charge_rate = attacker.charge_rate + dococo_bonus1
-				attacker.dococo_bonus1_cd = true
-				attacker:DoTaskInTime(6, function()
-					attacker.dococo_bonus1_cd = nil
-					attacker.charge_rate = attacker.charge_rate - dococo_bonus1
-				end)
-			end
-		end
-	end
-	if attacker:HasTag("catalyst_class") then
-		if proj.components.projectile then
-			proj.components.projectile:SetAfterGetHitFn(AfterGetHit)
-		elseif proj.components.complexprojectile then
-			proj.components.complexprojectile:SetAfterGetHitFn(AfterGetHit)
-		end
-	end
+local function OnDamageCalculated(inst, data)
+    local owner = inst.components.inventoryitem.owner
+    if owner == nil or owner.components.combat == nil then
+        return
+    end
+
+	local level = inst.components.refineable:GetCurrentLevel()
+	local rate = nil
+	local duration = TUNING.DOCOCOTALES_EFFECT_DURATION
+    if data.attackkey == "normal" then
+        -- print("normalattack\n\n")
+		rate = TUNING.DOCOCOTALES_EFFECT_RATE.charge[level]
+        owner.components.combat.external_attacktype_multipliers:SetModifier(inst, rate, "charge_dococotaleseffect")
+        LocalStartTimer(inst, "dococotales_chargedmg", duration)
+    end
+    --
+    if data.attackkey == "charge" then
+        -- print("chargeattack\n\n")
+		rate = TUNING.DOCOCOTALES_EFFECT_RATE.normal[level]
+        owner.components.combat.external_attacktype_multipliers:SetModifier(inst, rate, "normal_dococotaleseffect")
+        LocalStartTimer(inst, "dococotales_basedmg", duration)
+    end
 end
 
 local function DamageFn(weapon, attacker, target)
@@ -55,6 +73,20 @@ local function DamageFn(weapon, attacker, target)
         return TUNING.DOCOCOTALES_DAMAGE
     end
     return attacker.components.combat.defaultdamage + TUNING.DOCOCOTALES_DAMAGE
+end
+
+local function OnTimerDone(inst, data)
+    local owner = inst.components.inventoryitem.owner
+    if owner == nil or owner.components.combat == nil then
+        return
+    end
+
+    if data.name == "dococotales_chargedmg" then
+        owner.components.combat.external_attacktype_multipliers:RemoveModifier(inst, "charge_dococotaleseffect")
+    end
+    if data.name == "dococotales_basedmg" then
+        owner.components.combat.external_attacktype_multipliers:RemoveModifier(inst, "normal_dococotaleseffect")
+    end
 end
 
 local function fn()
@@ -88,7 +120,7 @@ local function fn()
 	inst:AddTag("subtextweapon")
     inst.subtext = "atk"
     inst.subnumber = "55.1%"
-    inst.description = TUNING.WEAPONEFFECT_DOCOCOTALES
+    inst.description = TUNING.WEAPONEFFECT_DOCOCOTALES_DESC
 
 	inst.entity:SetPristine()
 
@@ -106,7 +138,7 @@ local function fn()
 	inst:AddComponent("weapon")
 	inst.components.weapon:SetDamage(DamageFn)
 	inst.components.weapon:SetRange(5)
-	-- inst.components.weapon:SetOnProjectile(OnProj)
+	-- inst.components.weapon:SetOnProjectile(GetOnProjectile(inst))
 	-- inst.components.weapon:SetProjectile(projectile)
 
 	inst:AddComponent("rechargeable")
@@ -115,12 +147,15 @@ local function fn()
 	inst.components.refineable.overrideimage = "dococo_refinement"
 	inst.components.refineable.overrideatlas = "images/inventoryimages/dococo_refinement.xml"
 
-	-- inst.components.refineable.ingredient = "dococotales"
-
 	inst:AddComponent("equippable")
 	inst.components.equippable:SetOnEquip(OnEquip)
 	inst.components.equippable:SetOnUnequip(OnUnequip)
 	inst.components.equippable.restrictedtag = "catalyst_class"
+
+	inst:AddComponent("timer")
+    inst:ListenForEvent("timerdone", OnTimerDone)
+
+	inst:ListenForEvent("damagecalculated", OnDamageCalculated)
 
 	return inst
 end
