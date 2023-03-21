@@ -6,7 +6,9 @@ PrefabFiles = {
 	-- 元素战技
 	"jumpy_dumpty", "minebomb",
 	-- 元素爆发
-	"sparks_n_splash", "klee_sparks"
+	"sparks_n_splash", "klee_sparks",
+	-- 重击
+	"klee_charge_fx"
 }
 
 Assets = {

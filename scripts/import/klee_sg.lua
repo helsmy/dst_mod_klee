@@ -2,7 +2,7 @@ local CANT_TAGS = {"INLIMBO", "player", "chester", "companion", "wall"}
 
 local function MakeMine(inst_spawner, attacker, mx, mz, cd)
     local x, y, z = inst_spawner.Transform:GetWorldPosition()
-	local mine = SpawnPrefab("minebomb")
+    local mine = SpawnPrefab("minebomb")
     
     local function Explode()
         local x, y, z = mine.Transform:GetWorldPosition()
@@ -22,25 +22,25 @@ local function MakeMine(inst_spawner, attacker, mx, mz, cd)
         mine:Remove()
         attacker.components.combat.ignorehitrange = old_state
     end
-	
-	mine.Transform:SetPosition(x+mx, 0, z+mz)
+    
+    mine.Transform:SetPosition(x+mx, 0, z+mz)
     mine.components.mine:SetOnExplodeFn(Explode)
-	mine:ListenForEvent("Explode", Explode)
-	-- mine:DoTaskInTime(15, Explode)
-	mine:DoTaskInTime(cd, function()
-		mine:PushEvent("Explode")
-	end)
+    mine:ListenForEvent("Explode", Explode)
+    -- mine:DoTaskInTime(15, Explode)
+    mine:DoTaskInTime(cd, function()
+        mine:PushEvent("Explode")
+    end)
 end
 
 local function Mine(inst, attacker)
-	MakeMine(inst, attacker, math.random(0, 5), math.random(0, 5), 11.5)
-	MakeMine(inst, attacker, math.random(0, 5), math.random(0, 5),12)
-	MakeMine(inst, attacker, math.random(-5, 0), math.random(0, 5), 12.5)
-	MakeMine(inst, attacker, math.random(-5, 0), math.random(0, 5), 13)
-	MakeMine(inst, attacker, math.random(0, 5), math.random(-5, 0), 13.5)
-	MakeMine(inst, attacker, math.random(0, 5), math.random(-5, 0), 14)
-	MakeMine(inst, attacker, math.random(-5, 0), math.random(-5, 0), 14.5)
-	MakeMine(inst, attacker, math.random(-5, 0), math.random(-5, 0), 15)
+    MakeMine(inst, attacker, math.random(0, 5), math.random(0, 5), 11.5)
+    MakeMine(inst, attacker, math.random(0, 5), math.random(0, 5),12)
+    MakeMine(inst, attacker, math.random(-5, 0), math.random(0, 5), 12.5)
+    MakeMine(inst, attacker, math.random(-5, 0), math.random(0, 5), 13)
+    MakeMine(inst, attacker, math.random(0, 5), math.random(-5, 0), 13.5)
+    MakeMine(inst, attacker, math.random(0, 5), math.random(-5, 0), 14)
+    MakeMine(inst, attacker, math.random(-5, 0), math.random(-5, 0), 14.5)
+    MakeMine(inst, attacker, math.random(-5, 0), math.random(-5, 0), 15)
 end
 
 -- 生成一个
@@ -59,9 +59,9 @@ local function CastJumpyDumpty(caster, count, onhitfn)
     local max_count = 3
 
     local x, y, z = caster.Transform:GetWorldPosition()
-	local angle = (caster.Transform:GetRotation() + 90) * DEGREES
-	local tx = 4 * math.sin(angle)
-	local tz = 4 * math.cos(angle)
+    local angle = (caster.Transform:GetRotation() + 90) * DEGREES
+    local tx = 4 * math.sin(angle)
+    local tz = 4 * math.cos(angle)
 
     local target = SpawnPrefab("explode_small")
     target.Transform:SetPosition(x+tx, y, z+tz)
@@ -110,11 +110,11 @@ local function CastJumpyDumpty(caster, count, onhitfn)
 end
 
 local klee_chargeattack = State{
-	name = "chargeattack",
-	tags = { "chargeattack", "attack", "notalking", "nointerrupt", "abouttoattack", "autopredict" },
+    name = "klee_chargeattack",
+    tags = { "chargeattack", "attack", "notalking", "nointerrupt", "abouttoattack", "autopredict" },
 
-	onenter = function(inst)
-        print("DoChargedAttack")
+    onenter = function(inst)
+        -- print("DoChargedAttack")
         if inst.components.combat:InCooldown() then
             inst.sg:RemoveStateTag("abouttoattack")
             inst:ClearBufferedAction()
@@ -122,14 +122,14 @@ local klee_chargeattack = State{
             return
         end
 
-		if inst.components.playercontroller ~= nil then
-			inst.components.playercontroller:Enable(false)
-		end
-		inst.components.locomotor:Stop()
-		inst.components.locomotor:Clear()
-		inst:ClearBufferedAction()
-		inst.AnimState:PlayAnimation("klee_charge")
-	end,
+        if inst.components.playercontroller ~= nil then
+            inst.components.playercontroller:Enable(false)
+        end
+        inst.components.locomotor:Stop()
+        inst.components.locomotor:Clear()
+        inst:ClearBufferedAction()
+        inst.AnimState:PlayAnimation("klee_charge")
+    end,
 
     timeline = 
     {
@@ -138,34 +138,65 @@ local klee_chargeattack = State{
             local angle = (inst.Transform:GetRotation() + 90) * DEGREES
             local tx = 6 * math.sin(angle)
             local tz = 6 * math.cos(angle)
-
             local fx = SpawnPrefab("klee_charge_fx")
             fx.Transform:SetPosition(x+tx, y, z+tz)
-            -- fx.spark = spark
-        end)
+            fx:DoTaskInTime(9*FRAMES, fx.Remove)
+        end),
+
+        TimeEvent(10*FRAMES, function (inst)
+            local x, y, z = inst.Transform:GetWorldPosition()
+            local angle = (inst.Transform:GetRotation() + 90) * DEGREES
+            local tx = 6 * math.sin(angle)
+            local tz = 6 * math.cos(angle)
+            local pos = {x+tx, y, z+tz}
+            inst.SoundEmitter:PlaySound("dontstarve/creatures/together/toad_stool/spore_explode")
+			inst.SoundEmitter:KillSound("hiss")
+			local explode_fx = SpawnPrefab("explode_small")
+			explode_fx.Transform:SetPosition(x+tx, y, z+tz)
+			explode_fx.Transform:SetScale(2, 2, 2)
+			inst.components.combateffect_klee:DoAttackAndExplode(pos, 2.5, TUNING.KLEE_SKILL_NORMALATK.CHARGE_ATK_DMG[inst.components.talents:GetTalentLevel(1)],0)
+        end),
+        
+        TimeEvent(10*FRAMES, function (inst)
+            inst.sg:RemoveStateTag("nointerrupt")
+            inst.sg:RemoveStateTag("notalking")
+            inst.sg:RemoveStateTag("autopredict")
+        end),
+
+        -- 延迟2帧退出状态保证嘟可可故事集能检测到重击
+        TimeEvent(12*FRAMES, function (inst)
+            inst.sg:RemoveStateTag("chargeattack")
+            inst.sg:RemoveStateTag("attack")
+        end),
     },
 
-	events = {
-		EventHandler("animqueueover", function(inst)
-			if inst.AnimState:AnimDone() then
-				inst.sg:GoToState("idle")
-			end
-		end),
-	},
+    events = {
+        EventHandler("animqueueover", function(inst)
+            if inst.AnimState:AnimDone() then
+                inst.sg:GoToState("idle")
+            end
+        end),
+    },
 
-	onexit = function(inst)
-		if inst.components.playercontroller ~= nil then
-			inst.components.playercontroller:Enable(true)
-		end
-	end,
+    onexit = function(inst)
+        inst.sg:RemoveStateTag("nointerrupt")
+        inst.sg:RemoveStateTag("notalking")
+        inst.sg:RemoveStateTag("autopredict")
+        inst.sg:RemoveStateTag("chargeattack")
+        inst.sg:RemoveStateTag("attack")
+        inst.sg:RemoveStateTag("abouttoattack")
+        if inst.components.playercontroller ~= nil then
+            inst.components.playercontroller:Enable(true)
+        end
+    end,
 }
 
 local klee_chargeattack_client = State{
-	name = "klee_chargeattack",
-	tags = {"chargeattack", "attack", "notalking", "nointerrupt", "abouttoattack" },
+    name = "klee_chargeattack",
+    tags = {"chargeattack", "attack", "notalking", "nointerrupt", "abouttoattack" },
 
-	onenter = function(inst)
-        print("DoChargedAttack")
+    onenter = function(inst)
+        -- print("DoChargedAttack")
         if inst.replica.combat ~= nil then
             if inst.replica.combat:InCooldown() then
                 inst.sg:RemoveStateTag("abouttoattack")
@@ -175,42 +206,46 @@ local klee_chargeattack_client = State{
             end
             inst.replica.combat:StartAttack()
         end
-		if inst.components.playercontroller ~= nil then
-			inst.components.playercontroller:Enable(false)
-		end
-		inst.components.locomotor:Stop()
-		inst.components.locomotor:Clear()
-		inst:ClearBufferedAction()
-		inst.AnimState:PlayAnimation("klee_charge")
-	end,
+        if inst.components.playercontroller ~= nil then
+            inst.components.playercontroller:Enable(false)
+        end
+        inst.components.locomotor:Stop()
+        inst.components.locomotor:Clear()
+        inst:ClearBufferedAction()
+        inst.AnimState:PlayAnimation("klee_charge")
+    end,
 
     timeline = 
     {
-        TimeEvent(2*FRAMES, function (inst)
-            local x, y, z = inst.Transform:GetWorldPosition()
-            local angle = (inst.Transform:GetRotation() + 90) * DEGREES
-            local tx = 6 * math.sin(angle)
-            local tz = 6 * math.cos(angle)
-
-            local fx = SpawnPrefab("klee_charge_fx")
-            fx.Transform:SetPosition(x+tx, y, z+tz)
-            -- fx.spark = spark
-        end)
+        TimeEvent(12*FRAMES, function (inst)
+            inst.sg:RemoveStateTag("nointerrupt")
+            inst.sg:RemoveStateTag("notalking")
+            inst.sg:RemoveStateTag("autopredict")
+            inst.sg:RemoveStateTag("chargeattack")
+            inst.sg:RemoveStateTag("attack")
+            inst.sg:RemoveStateTag("abouttoattack")
+        end),
     },
 
-	events = {
-		EventHandler("animqueueover", function(inst)
-			if inst.AnimState:AnimDone() then
-				inst.sg:GoToState("idle")
-			end
-		end),
-	},
+    events = {
+        EventHandler("animqueueover", function(inst)
+            if inst.AnimState:AnimDone() then
+                inst.sg:GoToState("idle")
+            end
+        end),
+    },
 
-	onexit = function(inst)
-		if inst.components.playercontroller ~= nil then
-			inst.components.playercontroller:Enable(true)
-		end
-	end,
+    onexit = function(inst)
+        if inst.components.playercontroller ~= nil then
+            inst.components.playercontroller:Enable(true)
+        end
+        inst.sg:RemoveStateTag("nointerrupt")
+        inst.sg:RemoveStateTag("notalking")
+        inst.sg:RemoveStateTag("autopredict")
+        inst.sg:RemoveStateTag("chargeattack")
+        inst.sg:RemoveStateTag("attack")
+        inst.sg:RemoveStateTag("abouttoattack")
+    end,
 }
 
 --元素战技
@@ -228,7 +263,7 @@ local klee_elementalskill = State{
         local item = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
         if item ~= nil then
             inst.AnimState:Show("ARM_NORMAL")
-		    inst.AnimState:Hide("ARM_CARRY")
+            inst.AnimState:Hide("ARM_CARRY")
         end
 
         -- 可以考虑加点可莉的语音
@@ -249,20 +284,22 @@ local klee_elementalskill = State{
             local explode_fx = SpawnPrefab("explode_small")
             explode_fx.Transform:SetPosition(x+tx, y, z+tz)
             explode_fx:Remove()
-	        -- if mintarget ~= nil then
+            -- if mintarget ~= nil then
             --     inst:FacePoint(Point(mintarget.Transform:GetWorldPosition()))
-	        -- end
+            -- end
             -- local facingangle = inst.Transform:GetRotation() * DEGREES
             -- local fx = SpawnPrefab("raiden_eleskill_fx")
             -- fx.Transform:SetPosition(x + math.cos(-facingangle) * 2.5, 1.5, z + math.sin(-facingangle) * 2.5)
         end),
 
         TimeEvent(2 * FRAMES, function(inst)
-            local x, y, z = inst.Transform:GetWorldPosition()
-	        local facingangle = inst.Transform:GetRotation() * DEGREES
-	        local facedirection = Vector3(math.cos(-facingangle), 0, math.sin(-facingangle))
+            -- local x, y, z = inst.Transform:GetWorldPosition()
+            -- local facingangle = inst.Transform:GetRotation() * DEGREES
+            -- local facedirection = Vector3(math.cos(-facingangle), 0, math.sin(-facingangle))
             CastJumpyDumpty(inst, 1, function (jumpy, attacker)
-                jumpy.components.combateffect_klee:DoAttackAndExplode(attacker, 4, TUNING.KLEE_SKILL_ELESKILL.DMG[attacker.components.talents:GetTalentLevel(2)],8)
+                local x, y, z = jumpy.Transform:GetWorldPosition()
+                local pos = {x, y, z}
+                inst.components.combateffect_klee:DoAttackAndExplode(pos, 4, TUNING.KLEE_SKILL_ELESKILL.DMG[attacker.components.talents:GetTalentLevel(2)],8)
             end)
         end),
 
@@ -300,7 +337,7 @@ local klee_elementalskill = State{
         local item = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
         if item ~= nil then
             inst.AnimState:Show("ARM_CARRY")
-		    inst.AnimState:Hide("ARM_NORMAL")
+            inst.AnimState:Hide("ARM_NORMAL")
         end
         inst.sg:RemoveStateTag("attack")
         inst:RemoveTag("stronggrip")
@@ -323,7 +360,7 @@ local klee_elementalskill_client = State{
         local item = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
         if item ~= nil then
             inst.AnimState:Show("ARM_NORMAL")
-		    inst.AnimState:Hide("ARM_CARRY")
+            inst.AnimState:Hide("ARM_CARRY")
         end
     end,
 
@@ -364,7 +401,7 @@ local klee_elementalskill_client = State{
         local item = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
         if item ~= nil then
             inst.AnimState:Show("ARM_CARRY")
-		    inst.AnimState:Hide("ARM_NORMAL")
+            inst.AnimState:Hide("ARM_NORMAL")
         end
         inst.sg:RemoveStateTag("attack")
         inst.components.playercontroller:Enable(true)

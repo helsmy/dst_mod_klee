@@ -5,12 +5,14 @@ local assets = {
 local prefabs = {"explode_small"}
 
 local function OnHit(inst, attacker, target)
+	local x, y, z = inst.Transform:GetWorldPosition()
+	local pos = {x, y, z}
 	inst.SoundEmitter:KillSound("hiss")
 	inst.SoundEmitter:PlaySound("dontstarve/common/dropwood")
-	SpawnPrefab("explode_small").Transform:SetPosition(inst.Transform:GetWorldPosition())
+	SpawnPrefab("explode_small").Transform:SetPosition(x, y, z)
 
-	inst.components.combateffect_klee:DoAreaAttack(attacker, 1.5, TUNING.KLEE_SKILL_NORMALATK.ATK_DMG[attacker.components.talents:GetTalentLevel(1)], 0)
-	inst.components.combateffect_klee:DoExplode(attacker, 1.3, false)
+	attacker.components.combateffect_klee:DoAreaAttack(pos, 1.5, TUNING.KLEE_SKILL_NORMALATK.ATK_DMG[attacker.components.talents:GetTalentLevel(1)], 0)
+	attacker.components.combateffect_klee:DoExplode(pos, 1.3, false)
 	inst:Remove()
 end
 
@@ -53,8 +55,6 @@ local function fn()
 	inst.components.complexprojectile:SetGravity(-100)
 	inst.components.complexprojectile:SetLaunchOffset(Vector3(0, 1.5, 0))
 	inst.components.complexprojectile:SetOnHit(OnHit)
-
-	inst:AddComponent("combateffect_klee")
 
     return inst
 end

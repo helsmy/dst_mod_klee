@@ -75,15 +75,14 @@ end
 local function CustomAttackFn(inst, target, instancemult, ischarge)
 	-- assets(false, "CustomAttackFn breakpoint")
 	print("attack status:", ischarge)
-	print("attack status chargesgname:", inst.chargesgname)
-	print("attack status chargesgname:", inst.chargesgname(inst))
+	print("attack status chargesgname:", FunctionOrValue(inst.chargesgname, inst))
 	print("attack status cancharge:", inst.cancharge)
 	local weapon = inst.components.combat:GetWeapon()
 	if weapon ==nil or not weapon:HasTag("genshin_catalyst") then
 		inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
 		return
 	end
-	if ischarge then
+	if ischarge or inst.cancharge then
 		-- TODO: 完成重击
 		print("Do Charge attack")
 		inst.sg:GoToState("klee_chargeattack")
@@ -153,20 +152,29 @@ local function elementalburstfn(inst)
 				targets[#targets+1] = v
 			end
 		end
-		-- 在符合要求的目标里随机找一个
-		local target = targets[math.random(1, #targets)]
+		-- 要是什么目标都没有就返回
+		if #targets == 0 then return end
+		local target = targets[1]
+		-- 在符合要求的目标里随机找一个(让你血压上升的索敌来了)
+		if #targets > 1 then
+			target = targets[math.random(1, #targets)]
+		end
 		-- 生成攻击火花
 		local sparks = SpawnPrefab("klee_multi_spark")
 		sparks.Transform:SetPosition(target.Transform:GetWorldPosition())
 		sparks:DoTaskInTime(1.4, sparks.Remove)
 		-- 再进行一次超小范围的AOE，随机攻击3-5次
 		local attack_count = math.random(3, 5)
+		-- 莫名其妙的会鞭尸，生物死亡可能后不是立即被删除
+		-- 不过这也让人血压上升，就当是特性了
 		for i = 1, attack_count do
 			sparks:DoTaskInTime(0.6+0.1*i, function ()
 				local fx = SpawnPrefab("explode_small")
 				fx.Transform:SetPosition(sparks.Transform:GetWorldPosition())
 				fx.Transform:SetScale(0.8, 0.8, 0.8)
-				sparks.components.combateffect_klee:DoAreaAttack(inst, 1.1, TUNING.KLEE_SKILL_ELEBURST.DMG[inst.components.talents:GetTalentLevel(1)], 0)
+				local x1, y1, z1 = sparks.Transform:GetWorldPosition()
+				local pos = {x1, y1, z1}
+				inst.components.combateffect_klee:DoAreaAttack(pos, 1.1, TUNING.KLEE_SKILL_ELEBURST.DMG[inst.components.talents:GetTalentLevel(3)], 0)
 			end)
 		end
 	end
@@ -260,7 +268,7 @@ local common_postinit = function(inst)
 	end
 	----------------------------------------------------------------------------
 
-	inst.chargesgname = ChargeSGFn             
+	inst.chargesgname = "klee_chargeattack"
 end
 
 local master_postinit = function(inst)
@@ -275,6 +283,9 @@ local master_postinit = function(inst)
 	ElementalSkillFactoryKlee(inst)
 	inst.components.elementalcaster:SetElementalSkill(TUNING.KLEE_SKILL_ELESKILL.CD, TUNING.KLEE_SKILL_ELESKILL_COUNT)
 	inst.components.elementalcaster:SetElementalBurst(TUNING.KLEE_SKILL_ELEBURST.CD, TUNING.KLEE_SKILL_ELEBURST.ENERGY)
+	
+	-- 频繁使用的攻击效果
+	inst:AddComponent("combateffect_klee")
 	
 	--天赋
 	inst:AddComponent("talents")

@@ -42,7 +42,6 @@ local function fn()
 
     inst:AddComponent("complexprojectile")
     inst.components.complexprojectile:SetHorizontalSpeed(20)
-    inst:AddComponent("combateffect_klee")
 
     inst:DoTaskInTime(5, inst.Remove)
 

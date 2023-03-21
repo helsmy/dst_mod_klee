@@ -26,7 +26,6 @@ local function multi()
 		return inst
 	end
 
-	inst:AddComponent("combateffect_klee")
 	inst.persists = false
 
 	return inst

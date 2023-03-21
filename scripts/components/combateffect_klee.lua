@@ -18,10 +18,9 @@ local CombatEffect_klee = Class(function (self, inst)
     self.inst = inst
 end)
 
-function CombatEffect_klee:DoExplode(attacker, region, burnt)
-    local x, y, z = self.inst.Transform:GetWorldPosition()
+function CombatEffect_klee:DoExplode(pos, region, burnt)
     -- destory everything!
-    for i, v in pairs(TheSim:FindEntities(x, y, z, region)) do
+    for i, v in pairs(TheSim:FindEntities(pos[1], pos[2], pos[3], region)) do
         if v:IsValid() and TUNING.KLEE_CONST_BREAK and v.components.workable ~= nil and
             v.components.workable:CanBeWorked() then
             v.components.workable:WorkedBy(self.inst, 10)
@@ -36,25 +35,24 @@ function CombatEffect_klee:DoExplode(attacker, region, burnt)
     ShakeCamera(self)
 end
 
-function CombatEffect_klee:DoAreaAttack(attacker, region, instmulti, GainEnergy)
-    local x, y, z = self.inst.Transform:GetWorldPosition()
-	local ents = TheSim:FindEntities(x, y, z, region, {"_combat"}, CANT_TAGS)
+function CombatEffect_klee:DoAreaAttack(pos, region, instmulti, GainEnergy)
+	local ents = TheSim:FindEntities(pos[1], pos[2], pos[3], region, {"_combat"}, CANT_TAGS)
 
     if ents ~= nil then
-        attacker.components.energyrecharge:GainEnergy(GainEnergy)
+        self.inst.components.energyrecharge:GainEnergy(GainEnergy)
     end
 
     -- area attack
-    local old_state = attacker.components.combat.ignorehitrange
-	attacker.components.combat.ignorehitrange = true
+    local old_state = self.inst.components.combat.ignorehitrange
+	self.inst.components.combat.ignorehitrange = true
 	for i, v in pairs(ents) do
 		if v ~= self.inst and v:IsValid() and not v:IsInLimbo() then
-			attacker.components.combat:DoAttack(v, nil, nil, 1, instmulti, nil)
-			attacker.components.sanity:DoDelta(0.5)
+			self.inst.components.combat:DoAttack(v, nil, nil, 1, instmulti, nil)
+			self.inst.components.sanity:DoDelta(0.5)
 			v:PushEvent("explosion", {explosive = self.inst})
 		end
 	end
-	attacker.components.combat.ignorehitrange = old_state
+	self.inst.components.combat.ignorehitrange = old_state
 end
 
 function CombatEffect_klee:DoAttackAndExplode(attacker, region, instmulti, GainEnergy)
