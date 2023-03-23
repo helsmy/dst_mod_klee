@@ -134,6 +134,22 @@ TUNING.KLEE_SKILL_ELEBURST_SORT =
     "ENERGY", 
 }
 
+-- 沐风蘑菇没做先用红蘑菇替代
+TUNING.KLEE_TALENTS_INGREDIENTS = 
+{
+    {Ingredient("red_cap", 2),  Ingredient("redgem", 1), Ingredient("goldnugget", 1)},  --1~2
+    {Ingredient("red_cap", 4),  Ingredient("redgem", 1), Ingredient("goldnugget", 2)},  --2~3
+    {Ingredient("red_cap", 6),  Ingredient("redgem", 2), Ingredient("goldnugget", 3)},  --3~4
+    {Ingredient("red_cap", 8),  Ingredient("redgem", 2), Ingredient("goldnugget", 4)},  --4~5
+    {Ingredient("red_cap", 10), Ingredient("redgem", 3), Ingredient("goldnugget", 5)},  --5~6
+    {Ingredient("red_cap", 12), Ingredient("redgem", 3), Ingredient("goldnugget", 6)},  --6~7
+    {Ingredient("red_cap", 15), Ingredient("redgem", 4), Ingredient("goldnugget", 7)},  --7~8
+    {Ingredient("red_cap", 20), Ingredient("redgem", 4), Ingredient("goldnugget", 8)},  --8~9
+    {Ingredient("red_cap", 30), Ingredient("redgem", 5), Ingredient("goldnugget", 9)},   --Ingredient("crown_of_insight", 1, "images/inventoryimages/crown_of_insight.xml")},  --9~10
+}
+
+-- TUNING.POLEARM_WEAPONS
+
 --------------------- 设置定义 -----------------------
 
 TUNING.ELEMENTALBURST_KEY = GetModConfigData("key_elementalburst")

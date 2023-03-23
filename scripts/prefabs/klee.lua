@@ -39,20 +39,20 @@ local function OnLoad(inst)
     OnBecameHuman(inst)
 end
 
-local function ChargeSGFn(inst)
-	if TheWorld.ismastersim then
-		local weapon = inst.components.combat ~= nil and inst.components.combat:GetWeapon() or nil
-		if weapon == nil then
-			return "attack"
-		end
-	else
-		local equip = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS) or nil
-		if equip == nil then
-			return "attack"
-		end
-	end
-	return "klee_chargeattack"
-end
+-- local function ChargeSGFn(inst)
+-- 	if TheWorld.ismastersim then
+-- 		local weapon = inst.components.combat ~= nil and inst.components.combat:GetWeapon() or nil
+-- 		if weapon == nil then
+-- 			return "attack"
+-- 		end
+-- 	else
+-- 		local equip = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS) or nil
+-- 		if equip == nil then
+-- 			return "attack"
+-- 		end
+-- 	end
+-- 	return "klee_chargeattack"
+-- end
 
 local function AttackkeyFn(inst, weapon, target)
     if inst.burststate then
@@ -74,19 +74,16 @@ end
 
 local function CustomAttackFn(inst, target, instancemult, ischarge)
 	-- assets(false, "CustomAttackFn breakpoint")
-	print("attack status:", ischarge)
-	print("attack status chargesgname:", FunctionOrValue(inst.chargesgname, inst))
-	print("attack status cancharge:", inst.cancharge)
+	-- print("attack status:", ischarge)
+	-- print("attack status chargesgname:", FunctionOrValue(inst.chargesgname, inst))
+	-- print("attack status cancharge:", inst.cancharge)
 	local weapon = inst.components.combat:GetWeapon()
 	if weapon ==nil or not weapon:HasTag("genshin_catalyst") then
 		inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
 		return
 	end
-	if ischarge or inst.cancharge then
-		-- FIXME: 重击和元素爆发一起使用时有时候会崩溃
-		print("Do Charge attack")
-		inst.sg:GoToState("klee_chargeattack")
-	else
+	-- FIXME: 重击和元素爆发一起使用时有时候会崩溃
+	if not ischarge then
 		-- 临时将符合条件的武器的投射物设成可莉的投射物
 		-- 这样可莉的普攻就永远是一样的了
 		local old_proj = weapon.components.weapon.projectile
@@ -123,15 +120,6 @@ local function elementalburst_exitfn(inst)
 	if inst.components.inventory.isexternallyinsulated then
 		inst.components.inventory.isexternallyinsulated:RemoveModifier(inst)
 	end
-
-	-- local item = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
-	-- if item ~= nil and item.components.equippable then
-	-- 	inst.components.inventory:Equip(item)
-	-- else
-	-- 	inst.AnimState:ClearOverrideSymbol("swap_object")
-	-- 	inst.AnimState:Hide("ARM_CARRY")
-	-- 	inst.AnimState:Show("ARM_NORMAL")
-	-- end
 end
 
 --元素爆发
@@ -211,6 +199,39 @@ local function elementalburstfn(inst)
 
 end
 
+local function NewTalentsObject()
+	local last_time = GetTime()
+	-- 天赋 砰砰礼物
+	local function PoundingSurprise(inst, data)
+		local now = GetTime()
+		-- if math.random() < 0.5 then return end
+		
+		if now - last_time < 5 then
+			return
+		end
+		inst.explosive_spark = SpawnPrefab("explosive_spark")
+		inst.explosive_spark.Follower:FollowSymbol(inst.GUID, "swap_body", 0, 0, 0)
+		last_time = now
+	end
+
+	-- 天赋 火花无限 暴击充能
+	local function SparklingBurst(inst, data)
+		if not data.crit then return end
+		for i, v in pairs(AllPlayers) do
+			if v.components.energyrecharge then
+				v.components.energyrecharge:GainEnergy(2)
+			end
+		end
+	end
+
+	local function OnDamageCalculated(inst, data)
+		PoundingSurprise(inst, data)
+		SparklingBurst(inst, data)
+	end
+
+	return OnDamageCalculated
+end
+
 AddModRPCHandler("klee", "elementalskill", elementalskillfn)
 AddModRPCHandler("klee", "elementalburst", elementalburstfn)
 
@@ -230,6 +251,7 @@ local common_postinit = function(inst)
 	-- 天赋信息
 	inst.talents_path = "images/ui/talents_klee"
 	inst.talents_number = 6
+	inst.talents_ingredients = TUNING.KLEE_TALENTS_INGREDIENTS
 	inst.talents_description = TUNING.KLEE_TALENTS_DESC
 	inst.talents_attributes = {
 		value = {
@@ -315,6 +337,9 @@ local master_postinit = function(inst)
 	inst.customattackfn = CustomAttackFn
 
 	inst.elementalburst_exit = elementalburst_exitfn
+
+	-- 监听器 处理天赋
+	inst:ListenForEvent("damagecalculated", NewTalentsObject())
 end
 
 return MakePlayerCharacter("klee", prefabs, assets, common_postinit, master_postinit)

@@ -128,6 +128,12 @@ local klee_chargeattack = State{
         inst.components.locomotor:Stop()
         inst.components.locomotor:Clear()
         inst:ClearBufferedAction()
+        
+        -- 天赋 砰砰礼物 爆裂火花效果检查
+        if inst.explosive_spark then
+            inst.components.combat.external_attacktype_multipliers:SetModifier(inst, 0.5, "charge_sparkseffect")
+        end
+
         inst.AnimState:PlayAnimation("klee_charge")
     end,
 
@@ -155,9 +161,14 @@ local klee_chargeattack = State{
 			explode_fx.Transform:SetPosition(x+tx, y, z+tz)
 			explode_fx.Transform:SetScale(2, 2, 2)
 			inst.components.combateffect_klee:DoAttackAndExplode(pos, 2.5, TUNING.KLEE_SKILL_NORMALATK.CHARGE_ATK_DMG[inst.components.talents:GetTalentLevel(1)],0)
-        end),
-        
-        TimeEvent(10*FRAMES, function (inst)
+            
+            -- 天赋 砰砰礼物 爆裂火花效果结算完毕，移除
+            if inst.explosive_spark then
+                inst.components.combat.external_attacktype_multipliers:RemoveModifier(inst, "charge_sparkseffect")
+                inst.explosive_spark:Remove()
+                inst.explosive_spark = nil
+            end
+
             inst.sg:RemoveStateTag("nointerrupt")
             inst.sg:RemoveStateTag("notalking")
             inst.sg:RemoveStateTag("autopredict")

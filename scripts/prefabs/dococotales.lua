@@ -23,6 +23,7 @@ local function OwnerOnDamageCalculated(owner, data)
     if inst == nil then
         return
     end
+	-- 由武器本身来处理
     inst:PushEvent("damagecalculated", {target = data.target, damage = data.damage, weapon = data.weapon, stimuli = data.stimuli, elementvalue = data.elementvalue, crit = data.crit, attackkey = data.attackkey})
 end
 
@@ -110,7 +111,8 @@ local function fn()
 
 	inst:AddTag("weapon")
 	inst:AddTag("chargeattack_weapon")
-	inst:AddTag("thrown")
+	-- thrown tag 能让元素反应的重击处理失效，真神奇
+	-- inst:AddTag("thrown")
 
 	inst:AddTag("dococo")
 	inst:AddTag("genshin_projectile")
