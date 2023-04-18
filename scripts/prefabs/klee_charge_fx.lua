@@ -1,4 +1,3 @@
--- ‍dalao，试了一下，直接给inst.chargesgname赋值sg的name，不过好像并没起效。在CustomAttackFn里直接检测 inst.cancharge让状态直接转到重击倒是能行。
 local assets = {
 	Asset("ANIM", "anim/klee_fx.zip")
 }

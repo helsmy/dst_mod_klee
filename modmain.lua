@@ -2,13 +2,15 @@ PrefabFiles = {
 	-- 人物
 	"klee", "klee_none", 
 	-- 武器
-	"klee_proj", "dococotales", "fragments_of_innocence",
+	"klee_proj", "dococotales", "fragments_of_innocence", "klee_bag",
 	-- 元素战技
 	"jumpy_dumpty", "minebomb",
 	-- 元素爆发
 	"sparks_n_splash", "klee_sparks",
 	-- 重击
-	"klee_charge_fx"
+	"klee_charge_fx",
+	-- 命座
+	"klee_constellation_star"
 }
 
 Assets = {
@@ -96,7 +98,7 @@ TUNING.KLEE_SKILL_ELESKILL_COUNT = 2
 
 TUNING.KLEE_SKILL_ELESKILL = 
 {
-    CD = 20*0.1,
+    CD = 20,
     DURATION = 15,
     --LEVEL             1      2      3      4      5      6      7      8      9      10     11     12     13     14     15
     DMG =            {0.952, 1.020, 1.090, 1.190, 1.260, 1.330, 1.430, 1.520, 1.620, 1.710, 1.810, 1.900, 2.020, 2.020, 2.020},
@@ -105,7 +107,7 @@ TUNING.KLEE_SKILL_ELESKILL =
 
 TUNING.KLEE_SKILL_ELEBURST = 
 {
-    CD = 15*0.1,
+    CD = 15,
     ENERGY = 60, 
     DURATION = 10,
     --LEVEL             1      2      3      4      5      6      7      8      9      10     11     12     13     14     15
@@ -172,62 +174,13 @@ modimport("scripts/import/kleeUI_postconstruct.lua")
 ----------------------- SG -------------------------
 
 modimport("scripts/import/klee_sg.lua")
+---------------------- 配方 ------------------------
 
+modimport("scripts/import/klee_recipes.lua")
 
-local language = GetModConfigData("lang")
-if language == 0 then
-	if STRINGS.UI.OPTIONS.LANGUAGES == "语言" then
-		language = 2
-	else
-		language = 1
-	end
-end
-
-if language == 1 then
-	STRINGS.CHARACTER_TITLES.klee = "Fleeing Sunlight"
-	STRINGS.CHARACTER_NAMES.klee = "Klee"
-	STRINGS.CHARACTER_DESCRIPTIONS.klee = ""
-	STRINGS.CHARACTER_QUOTES.klee = "Do you wanna come fish blasting with me?"
-	STRINGS.CHARACTER_SURVIVABILITY.klee = "Kaboom!"
-
-	STRINGS.NAMES.KLEE = "Klee"
-	STRINGS.SKIN_NAMES.klee_none = "Klee"
-
-	STRINGS.NAMES.KLEE_STELLA = "Klee's Stella Fortuna"
-	STRINGS.NAMES.DOCOCOTALES = "Dodoco Tales"
-	STRINGS.NAMES.DOCOCO_REFINEMENT = "Fragments of Innocence"
-
-	STRINGS.RECIPE_DESC.KLEE_STELLA = "Klee's Constellation Activation Materials"
-	STRINGS.RECIPE_DESC.DOCOCOTALES = "A children's book filled with childish short stories."
-	STRINGS.RECIPE_DESC.DOCOCO_REFINEMENT = "Dodoco Tales's refinement material"
-
-	STRINGS.NAMES.MINEBOMB = "Mine"
-	STRINGS.NAMES.KLEE_BAG = "Klee's bag"
-elseif language == 2 then
-	STRINGS.CHARACTER_TITLES.klee = "逃跑的太阳"
-	STRINGS.CHARACTER_NAMES.klee = "可莉"
-	STRINGS.CHARACTER_DESCRIPTIONS.klee = ""
-	STRINGS.CHARACTER_QUOTES.klee = "要和可莉一起去炸鱼吗？"
-	STRINGS.CHARACTER_SURVIVABILITY.klee = "Kaboom!"
-
-	STRINGS.NAMES.KLEE = "可莉"
-	STRINGS.SKIN_NAMES.klee_none = "可莉"
-
-	STRINGS.NAMES.KLEE_STELLA = "可莉的命星"
-	STRINGS.NAMES.DOCOCOTALES = "嘟嘟可故事集"
-	STRINGS.NAMES.DOCOCO_REFINEMENT = "童真的断篇"
-
-	STRINGS.RECIPE_DESC.KLEE_STELLA = "可莉的命座激活素材"
-	STRINGS.RECIPE_DESC.DOCOCOTALES = "一本封面华丽的童书。"
-	STRINGS.RECIPE_DESC.DOCOCO_REFINEMENT = "「嘟嘟可故事集」的精炼道具"
-
-	STRINGS.NAMES.MINEBOMB = "诡雷"
-	STRINGS.NAMES.KLEE_BAG = "可莉的背包"
-end
-	STRINGS.CHARACTERS.KLEE = require "speech_wilson"
 
 -- 人物属性
-TUNING.KLEE_HEALTH = 150
+TUNING.KLEE_HEALTH = GetModConfigData("hp") or 150
 TUNING.KLEE_HUNGER = 150
 TUNING.KLEE_SANITY = 150
 

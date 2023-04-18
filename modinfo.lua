@@ -1,11 +1,10 @@
-name = "Klee modify"
+name = "Klee modify remaster"
 description = [[
-Press "R" to use Charge Attack.
-Press "Z" to use ELemental Skill.
-Press "X" to use Elemental Burst.
+genshin character klee
+原神角色可莉
 ]]
-author = "Cá Khô/walala"
-version = "0.0.1"
+author = "Cá Khô/helsmy"
+version = "0.1.0"
 forumthread = ""
 
 api_version = 10
@@ -71,30 +70,6 @@ configuration_options = {
 			{description = "250", data = 250},
 		},
 		default = 150
-	},
-	{
-		name = "er",
-		label = "Energy Recharge",
-		hover = "",
-		options = {
-			{description = "100%", data = 1},
-			{description = "150%", data = 1.5},
-			{description = "200%", data = 2},
-		},
-		default = 1
-	},
-	{
-		name = "Key",
-		hover = "",
-		options={{description = "", data = 0}},
-		default = 0
-	},
-	{
-		name = "charge",
-		label = "Charge Attack",
-		hover = "",
-		options = list,
-		default = "KEY_R",	
 	},
 	Title("控制"),
 	{
@@ -295,12 +270,7 @@ configuration_options = {
 		},
 		default = true
 	},
-	{
-		name = "Others",
-		hover = "",
-		options={{description = "", data = 0}},
-		default = 0
-	},
+	Title(""),
 	{
 		name = "const_burn",
 		label = "Burning",

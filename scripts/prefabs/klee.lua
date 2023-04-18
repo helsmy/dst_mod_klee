@@ -39,20 +39,51 @@ local function OnLoad(inst)
     OnBecameHuman(inst)
 end
 
--- local function ChargeSGFn(inst)
--- 	if TheWorld.ismastersim then
--- 		local weapon = inst.components.combat ~= nil and inst.components.combat:GetWeapon() or nil
--- 		if weapon == nil then
--- 			return "attack"
--- 		end
--- 	else
--- 		local equip = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS) or nil
--- 		if equip == nil then
--- 			return "attack"
--- 		end
--- 	end
--- 	return "klee_chargeattack"
--- end
+local function OnDeath(inst)
+	-- 4命 说起来其实也没什么卵用
+	if inst.components.constellation:GetActivatedLevel() >= 4 and inst.burststate == true then
+		local x, y, z = inst.Transform:GetWorldPosition()
+		local pos = {x, y, z}
+    	inst.components.combateffect_klee:DoAttackAndExplode(pos, 4, 5.55, 0)
+	end
+end
+
+-- 这个函数主客机都运行
+local function ChargeSGFn(inst)
+	if TheWorld.ismastersim then
+		local weapon = inst.components.combat ~= nil and inst.components.combat:GetWeapon() or nil
+		if weapon == nil then
+			return "attack"
+		end
+	else
+		local equip = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS) or nil
+		if equip == nil then
+			return "attack"
+		end
+	end
+	return "klee_chargeattack"
+end
+
+local function AttackDecorator(func)
+	local function InnerDecorator(inst, target, instancemult, ischarge)
+		print("target:", type(target), target, "instancemult:", instancemult, "ischarge:", ischarge)
+		if inst.components.constellation:GetActivatedLevel() >= 1 then
+			if type(target) == "table" and math.random() < 0.25 then
+				local spark = SpawnPrefab("klee_single_spark")
+				spark.Transform:SetPosition(target.Transform:GetWorldPosition())
+				spark:DoTaskInTime(10*FRAMES, function ()
+					local x, y, z = target.Transform:GetWorldPosition()
+					local pos = {x, y, z}
+					inst.components.combateffect_klee:DoAreaAttack(pos, 1.1, TUNING.KLEE_SKILL_ELEBURST.DMG[inst.components.talents:GetTalentLevel(3)]*1.2, 0)
+				end)
+				spark:DoTaskInTime(12*FRAMES, spark.Remove)
+			end
+		end
+		func(inst, target, instancemult, ischarge)
+	end
+
+	return InnerDecorator
+end
 
 local function AttackkeyFn(inst, weapon, target)
     if inst.burststate then
@@ -177,6 +208,17 @@ local function elementalburstfn(inst)
 		end)
 	end)
 
+	-- 6命 don't strave alone时卵用没有的命座
+	if inst.components.constellation:GetActivatedLevel() >= 6 then
+		inst.SparksnSplash:DoPeriodicTask(3, function ()
+			for index, v in ipairs(AllPlayers) do
+				if v ~= inst and v.components.energyrecharge then
+					v.components.energyrecharge:GainEnergy(3)
+				end
+			end
+		end)
+	end
+
 	-- if inst.burststate then
 	-- 	elementalburst_exitfn(inst)
 	-- 	if inst.exittask ~= nil then
@@ -199,12 +241,26 @@ local function elementalburstfn(inst)
 
 end
 
+local function constellation_func3(inst)
+	if inst.components.talents == nil then
+		return
+    end
+	inst.components.talents:SetExtensionModifier(2, inst, 3, "klee_constellation3")
+end
+
+local function constellation_func5(inst)
+	if inst.components.talents == nil then
+		return
+    end
+	inst.components.talents:SetExtensionModifier(3, inst, 3, "klee_constellation5")
+end
+
 local function NewTalentsObject()
 	local last_time = GetTime()
 	-- 天赋 砰砰礼物
 	local function PoundingSurprise(inst, data)
 		local now = GetTime()
-		-- if math.random() < 0.5 then return end
+		if math.random() < 0.5 then return end
 		
 		if now - last_time < 5 then
 			return
@@ -232,8 +288,8 @@ local function NewTalentsObject()
 	return OnDamageCalculated
 end
 
-AddModRPCHandler("klee", "elementalskill", elementalskillfn)
-AddModRPCHandler("klee", "elementalburst", elementalburstfn)
+AddModRPCHandler("klee", "elementalskill", AttackDecorator(elementalskillfn))
+AddModRPCHandler("klee", "elementalburst", AttackDecorator(elementalburstfn))
 
 local common_postinit = function(inst) 
 	inst.MiniMapEntity:SetIcon( "klee.tex" )
@@ -247,6 +303,10 @@ local common_postinit = function(inst)
 	inst:AddTag("genshin_character")
 
 	inst.character_description = STRINGS.CHARACTER_DESCRIPTIONS.klee
+
+	-- 命座信息
+	inst.constellation_decription = TUNING.KLEE_CONSTELLATION_DESC 
+	inst.constellation_starname = "klee_constellation_star"
 
 	-- 天赋信息
 	inst.talents_path = "images/ui/talents_klee"
@@ -290,7 +350,7 @@ local common_postinit = function(inst)
 	end
 	----------------------------------------------------------------------------
 
-	inst.chargesgname = "klee_chargeattack"
+	inst.chargesgname = ChargeSGFn
 end
 
 local master_postinit = function(inst)
@@ -311,6 +371,12 @@ local master_postinit = function(inst)
 	
 	--天赋
 	inst:AddComponent("talents")
+	
+	-- 命座
+	inst:AddComponent("constellation")
+	inst.components.constellation:SetLevelFunc(3, constellation_func3)
+	inst.components.constellation:SetLevelFunc(5, constellation_func5)
+
 
 	-- 三维设置
 	inst.components.health:SetMaxHealth(TUNING.KLEE_HEALTH)
@@ -334,12 +400,13 @@ local master_postinit = function(inst)
 
 	inst.normalattackdmgratefn = NormalATKRateFn
 	inst.chargeattackdmgratefn = ChargeATKRateFn
-	inst.customattackfn = CustomAttackFn
+	inst.customattackfn = AttackDecorator(CustomAttackFn)
 
 	inst.elementalburst_exit = elementalburst_exitfn
 
 	-- 监听器 处理天赋
 	inst:ListenForEvent("damagecalculated", NewTalentsObject())
+	inst:ListenForEvent("death", OnDeath)
 end
 
 return MakePlayerCharacter("klee", prefabs, assets, common_postinit, master_postinit)

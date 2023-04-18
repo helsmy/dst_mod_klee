@@ -10,10 +10,59 @@ local function plainintfunc(num)    --直接写,整数
     return string.format("%d", num) 
 end
 
-STRINGS.CHARACTER_TITLES.klee = "逃跑的太阳"
-STRINGS.CHARACTER_NAMES.klee = "可莉"
-STRINGS.CHARACTER_DESCRIPTIONS.klee = "西风骑士团禁闭室的常客，蒙德的爆破大师。人称「逃跑的太阳」。"
-STRINGS.CHARACTER_QUOTES.klee = "西风骑士团禁闭室的常客，蒙德的爆破大师。人称「逃跑的太阳」。"
+
+local language = GetModConfigData("lang")
+if language == 0 then
+	if STRINGS.UI.OPTIONS.LANGUAGES == "语言" then
+		language = 2
+	else
+		language = 1
+	end
+end
+
+if language == 1 then
+	STRINGS.CHARACTER_TITLES.klee = "Fleeing Sunlight"
+	STRINGS.CHARACTER_NAMES.klee = "Klee"
+	STRINGS.CHARACTER_DESCRIPTIONS.klee = "An explosives expert and a regular at the Knights of Favonius's confinement room. Also known as Fleeing Sunlight."
+	STRINGS.CHARACTER_QUOTES.klee = "Do you wanna come fish blasting with me?"
+	STRINGS.CHARACTER_SURVIVABILITY.klee = "Kaboom!"
+
+	STRINGS.NAMES.KLEE = "Klee"
+	STRINGS.SKIN_NAMES.klee_none = "Klee"
+
+	STRINGS.NAMES.KLEE_STELLA = "Klee's Stella Fortuna"
+	STRINGS.NAMES.DOCOCOTALES = "Dodoco Tales"
+	STRINGS.NAMES.DOCOCO_REFINEMENT = "Fragments of Innocence"
+
+	STRINGS.RECIPE_DESC.KLEE_STELLA = "Klee's Constellation Activation Materials"
+	STRINGS.RECIPE_DESC.DOCOCOTALES = "A children's book filled with childish short stories."
+	STRINGS.RECIPE_DESC.DOCOCO_REFINEMENT = "Dodoco Tales's refinement material"
+
+	STRINGS.NAMES.MINEBOMB = "Mine"
+	STRINGS.NAMES.KLEE_BAG = "Klee's bag"
+elseif language == 2 then
+	STRINGS.CHARACTER_TITLES.klee = "逃跑的太阳"
+	STRINGS.CHARACTER_NAMES.klee = "可莉"
+	STRINGS.CHARACTER_DESCRIPTIONS.klee = "西风骑士团禁闭室的常客，蒙德的爆破大师。人称「逃跑的太阳」。"
+	STRINGS.CHARACTER_QUOTES.klee = "要和可莉一起去炸鱼吗？"
+	STRINGS.CHARACTER_SURVIVABILITY.klee = "Kaboom!"
+
+	STRINGS.NAMES.KLEE = "可莉"
+	STRINGS.SKIN_NAMES.klee_none = "可莉"
+
+	STRINGS.NAMES.KLEE_STELLA = "可莉的命星"
+	STRINGS.NAMES.DOCOCOTALES = "嘟嘟可故事集"
+	STRINGS.NAMES.DOCOCO_REFINEMENT = "童真的断篇"
+
+	STRINGS.RECIPE_DESC.KLEE_STELLA = "可莉的命座激活素材"
+	STRINGS.RECIPE_DESC.DOCOCOTALES = "一本封面华丽的童书。"
+	STRINGS.RECIPE_DESC.DOCOCO_REFINEMENT = "「嘟嘟可故事集」的精炼道具"
+
+	STRINGS.NAMES.MINEBOMB = "诡雷"
+	STRINGS.NAMES.KLEE_BAG = "可莉的背包"
+end
+	STRINGS.CHARACTERS.KLEE = require "speech_wilson"
+-- STRINGS.CHARACTER_QUOTES.klee = "西风骑士团禁闭室的常客，蒙德的爆破大师。人称「逃跑的太阳」。"
 
 -- 先用中文，不管什么狗屁本地化
 -- 天赋描述
@@ -113,6 +162,32 @@ TUNING.KLEE_SKILL_ELEBURST_TEXT =
     },
 }
 
+TUNING.KLEE_CONSTELLATION_DESC = 
+{
+    titlename = 
+    {
+        "连环轰隆",
+        "破破弹片",
+        "可莉特调",
+        "一触即发",
+        "轰击之星",
+        "火力全开",
+    },
+    content = 
+    {
+        "攻击与施放技能时，有几率召唤火花轰击敌人，造成相当于轰轰火花（大招单段）攻击伤害120％的伤害。",
+        "蹦蹦炸弹的诡雷会使敌人防御力降低23％，持续10秒。 ",
+        "蹦蹦炸弹的技能等级提高3级。\n至多提升至15级。",
+        "如果在轰轰火花持续期间内退场，会引发爆炸，造成555％攻击力的火元素范围伤害。",
+        "轰轰火花的技能等级提高3级。\n至多提升至15级。",
+        "在轰轰火花的状态下，会持续为队伍中所有角色（不包括可莉自己）恢复元素能量（每3秒跳1次，共跳3次，回复约9点）；施放轰轰火花后的25秒内，队伍中所有角色获得10％火元素伤害加成。",
+    },
+}
+
 STRINGS.NAMES.FRAGMENTS_OF_INNOCENCE = "童真的断章"
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.FRAGMENTS_OF_INNOCENCE = "一本封面华丽的童书，内容皆是童言无忌的短小故事，读之令人忍俊不禁。\n即使业已成年的读者，读到书中天真无邪的冒险故事，也会忍不住神往吧。"
 STRINGS.RECIPE_DESC.FRAGMENTS_OF_INNOCENCE = "嘟嘟可故事集专用精炼道具"
+
+STRINGS.NAMES.KLEE_CONSTELLATION_STAR = "可莉的命星"
+STRINGS.CHARACTERS.GENERIC.DESCRIBE.KLEE_CONSTELLATION_STAR = "可莉的命之座激活素材"
+STRINGS.RECIPE_DESC.KLEE_CONSTELLATION_STAR = "可莉的命之座激活素材"

@@ -55,10 +55,10 @@ function CombatEffect_klee:DoAreaAttack(pos, region, instmulti, GainEnergy)
 	self.inst.components.combat.ignorehitrange = old_state
 end
 
-function CombatEffect_klee:DoAttackAndExplode(attacker, region, instmulti, GainEnergy)
+function CombatEffect_klee:DoAttackAndExplode(pos, region, instmulti, GainEnergy)
     -- destory everything!
-    self:DoExplode(attacker, region, true)
-    self:DoAreaAttack(attacker, region, instmulti, GainEnergy)
+    self:DoExplode(pos, region, true)
+    self:DoAreaAttack(pos, region, instmulti, GainEnergy)
 end
 
 return CombatEffect_klee

@@ -18,6 +18,12 @@ local function MakeMine(inst_spawner, attacker, mx, mz, cd)
         attacker.components.combat.ignorehitrange = true
         for i, v in pairs(ents) do
             attacker.components.combat:DoAttack(v, nil, nil, 1, TUNING.KLEE_SKILL_ELESKILL.CO_DMG[attacker.components.talents:GetTalentLevel(2)], "elementalskill")
+            if v.components.combat and attacker.components.constellation:GetActivatedLevel() >= 2 then
+                v.components.combat.external_defense_multipliers:SetModifier(v, -0.23, "all_klee_c2_defensedown")
+                v:DoTaskInTime(10, function ()
+                    v.components.combat.external_defense_multipliers:RemoveModifier(v, "all_klee_c2_defensedown")
+                end)
+            end
         end
         mine:Remove()
         attacker.components.combat.ignorehitrange = old_state
@@ -109,6 +115,64 @@ local function CastJumpyDumpty(caster, count, onhitfn)
     return jumpy_dumpty
 end
 
+local function chargfxtimeline()
+    local fx = nil
+    return {
+        TimeEvent(2*FRAMES, function (inst)
+            local x, y, z = inst.Transform:GetWorldPosition()
+            local angle = (inst.Transform:GetRotation() + 90) * DEGREES
+            local tx = 6 * math.sin(angle)
+            local tz = 6 * math.cos(angle)
+            fx = SpawnPrefab("klee_charge_fx")
+            fx.Transform:SetPosition(x+tx, y, z+tz)
+            fx.Transform:SetScale(0.7, 0.7, 0.7)
+        end),
+
+        TimeEvent(3*FRAMES, function (inst)
+            fx.Transform:SetScale(0.8, 0.8, 0.8)
+        end),
+
+        TimeEvent(4*FRAMES, function (inst)
+            fx.Transform:SetScale(0.9, 0.9, 0.9)
+        end),
+
+        TimeEvent(5*FRAMES, function (inst)
+            fx.Transform:SetScale(1, 1, 1)
+        end),
+        
+        TimeEvent(10*FRAMES, function (inst)
+            local x, y, z = fx.Transform:GetWorldPosition()
+            local pos = {x, y, z}
+            inst.SoundEmitter:PlaySound("dontstarve/creatures/together/toad_stool/spore_explode")
+			inst.SoundEmitter:KillSound("hiss")
+			local explode_fx = SpawnPrefab("explode_small")
+			explode_fx.Transform:SetPosition(x, y, z)
+			explode_fx.Transform:SetScale(2, 2, 2)
+			inst.components.combateffect_klee:DoAttackAndExplode(pos, 2.5, TUNING.KLEE_SKILL_NORMALATK.CHARGE_ATK_DMG[inst.components.talents:GetTalentLevel(1)],0)
+            
+            -- 天赋 砰砰礼物 爆裂火花效果结算完毕，移除
+            if inst.explosive_spark then
+                -- print("Remove PoundingSurprise")
+                inst.components.combat.external_attacktype_multipliers:RemoveModifier(inst, "charge_sparkseffect")
+                inst.explosive_spark:Remove()
+                inst.explosive_spark = nil
+            end
+
+            inst.sg:RemoveStateTag("nointerrupt")
+            inst.sg:RemoveStateTag("notalking")
+            inst.sg:RemoveStateTag("autopredict")
+        end),
+
+        -- 延迟2帧退出状态保证嘟可可故事集能检测到重击
+        TimeEvent(12*FRAMES, function (inst)
+            inst.sg:RemoveStateTag("chargeattack")
+            inst.sg:RemoveStateTag("attack")
+            fx:Remove()
+            fx = nil
+        end),
+    }
+end
+
 local klee_chargeattack = State{
     name = "klee_chargeattack",
     tags = { "chargeattack", "attack", "notalking", "nointerrupt", "abouttoattack", "autopredict" },
@@ -131,55 +195,14 @@ local klee_chargeattack = State{
         
         -- 天赋 砰砰礼物 爆裂火花效果检查
         if inst.explosive_spark then
+            -- print("PoundingSurprise take effect")
             inst.components.combat.external_attacktype_multipliers:SetModifier(inst, 0.5, "charge_sparkseffect")
         end
 
         inst.AnimState:PlayAnimation("klee_charge")
     end,
 
-    timeline = 
-    {
-        TimeEvent(2*FRAMES, function (inst)
-            local x, y, z = inst.Transform:GetWorldPosition()
-            local angle = (inst.Transform:GetRotation() + 90) * DEGREES
-            local tx = 6 * math.sin(angle)
-            local tz = 6 * math.cos(angle)
-            local fx = SpawnPrefab("klee_charge_fx")
-            fx.Transform:SetPosition(x+tx, y, z+tz)
-            fx:DoTaskInTime(9*FRAMES, fx.Remove)
-        end),
-
-        TimeEvent(10*FRAMES, function (inst)
-            local x, y, z = inst.Transform:GetWorldPosition()
-            local angle = (inst.Transform:GetRotation() + 90) * DEGREES
-            local tx = 6 * math.sin(angle)
-            local tz = 6 * math.cos(angle)
-            local pos = {x+tx, y, z+tz}
-            inst.SoundEmitter:PlaySound("dontstarve/creatures/together/toad_stool/spore_explode")
-			inst.SoundEmitter:KillSound("hiss")
-			local explode_fx = SpawnPrefab("explode_small")
-			explode_fx.Transform:SetPosition(x+tx, y, z+tz)
-			explode_fx.Transform:SetScale(2, 2, 2)
-			inst.components.combateffect_klee:DoAttackAndExplode(pos, 2.5, TUNING.KLEE_SKILL_NORMALATK.CHARGE_ATK_DMG[inst.components.talents:GetTalentLevel(1)],0)
-            
-            -- 天赋 砰砰礼物 爆裂火花效果结算完毕，移除
-            if inst.explosive_spark then
-                inst.components.combat.external_attacktype_multipliers:RemoveModifier(inst, "charge_sparkseffect")
-                inst.explosive_spark:Remove()
-                inst.explosive_spark = nil
-            end
-
-            inst.sg:RemoveStateTag("nointerrupt")
-            inst.sg:RemoveStateTag("notalking")
-            inst.sg:RemoveStateTag("autopredict")
-        end),
-
-        -- 延迟2帧退出状态保证嘟可可故事集能检测到重击
-        TimeEvent(12*FRAMES, function (inst)
-            inst.sg:RemoveStateTag("chargeattack")
-            inst.sg:RemoveStateTag("attack")
-        end),
-    },
+    timeline = chargfxtimeline(),
 
     events = {
         EventHandler("animqueueover", function(inst)
