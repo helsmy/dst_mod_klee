@@ -1,4 +1,4 @@
-local ElementalBurst_Badge = require "widgets/elementalburst_badge"
+local ElementalBurst_Badge = require "widgets/elementalburst_badge_klee"
 local ElementalSkill_Badge = require "widgets/elementalskill_badge_klee"
 
 local klee_skill_imgs = {

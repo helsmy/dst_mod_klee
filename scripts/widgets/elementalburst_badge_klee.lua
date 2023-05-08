@@ -125,6 +125,7 @@ local elementalburst_badge = Class(Draggable_GenshinBtn, function(self, owner, b
 	self.anim:GetAnimState():SetBank(bank)
 	self.anim:GetAnimState():SetBuild(build)
 	self.anim:GetAnimState():SetPercent(anim, self.percent)
+    self.anim:SetScale(1.3, 1.3, 1.3)
 
     self.normal_anim = anim
     self.full_anim = fullanim
