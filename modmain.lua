@@ -72,11 +72,13 @@ Assets = {
 	Asset( "ANIM", "anim/klee_energy.zip" ),
 	Asset( "ANIM", "anim/klee_anim.zip" ),
 
-	Asset( "IMAGE", "images/map_icons/klee_bag.tex" ),
-	Asset( "ATLAS", "images/map_icons/klee_bag.xml" ),
+	-- 背包地图图标
+	Asset( "IMAGE", "images/map_icons/klee_bag_map.tex" ),
+	Asset( "ATLAS", "images/map_icons/klee_bag_map.xml" ),
 }
 
 AddMinimapAtlas("images/map_icons/klee.xml")
+AddMinimapAtlas("images/map_icons/klee_bag_map.xml")
 
 GLOBAL.setmetatable(env,{__index=function(t,k) return GLOBAL.rawget(GLOBAL,k) end})
 

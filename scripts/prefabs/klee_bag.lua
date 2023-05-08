@@ -1,9 +1,8 @@
 local assets = {
-    Asset("ANIM", "anim/backpack.zip"),
     Asset("ANIM", "anim/klee_bag.zip"),
-    Asset("ANIM", "anim/ui_krampusbag_2x5.zip"),
-    Asset("ANIM", "anim/ui_krampusbag_2x8.zip"),
-    Asset("ATLAS", "images/inventoryimages/klee_bag.xml")
+    Asset("ANIM", "anim/ui_piggyback_2x6.zip"),
+    Asset("IMAGE", "images/inventoryimages/klee_bag.tex"),
+    Asset("ATLAS", "images/inventoryimages/klee_bag.xml"),
 }
 
 local function OnEquip(inst, owner)
@@ -45,11 +44,12 @@ local function fn()
     inst.entity:AddAnimState()
     inst.entity:AddSoundEmitter()
     inst.entity:AddNetwork()
+    inst.entity:AddMiniMapEntity()
 
     MakeInventoryPhysics(inst)
 
-    inst.entity:AddMiniMapEntity()
-    inst.MiniMapEntity:SetIcon("klee_bag.tex")
+    inst.MiniMapEntity:SetPriority(5)
+    inst.MiniMapEntity:SetIcon("klee_bag_map.tex")
 
     inst.AnimState:SetBank("klee_bag")
     inst.AnimState:SetBuild("klee_bag")
@@ -66,7 +66,7 @@ local function fn()
     inst.entity:SetPristine()
 
     if not TheWorld.ismastersim then
-        inst.OnEntityReplicated = function(_inst) _inst.replica.container:WidgetSetup("krampus_sack") end
+        inst.OnEntityReplicated = function(_inst) _inst.replica.container:WidgetSetup("piggyback") end
         return inst
     end
 
@@ -89,7 +89,7 @@ local function fn()
     inst.components.waterproofer:SetEffectiveness(TUNING.WATERPROOFNESS_SMALL)
 
     inst:AddComponent("container")
-    inst.components.container:WidgetSetup("krampus_sack")
+    inst.components.container:WidgetSetup("piggyback")
     inst.components.container.skipclosesnd = true
     inst.components.container.skipopensnd = true
 
