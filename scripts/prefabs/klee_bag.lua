@@ -37,6 +37,21 @@ local function onequiptomodel(inst, owner)
     inst.components.container:Close(owner)
 end
 
+local function OnPutInInventory(inst, owner)
+    inst:DoTaskInTime(0, function(_inst, _owner)
+        local grandOwner = _owner or
+        (_inst.components.inventoryitem ~= nil and _inst.components.inventoryitem:GetGrandOwner())
+        local bag = grandOwner.components.inventory:GetEquippedItem(EQUIPSLOTS.BODY)
+        if grandOwner.components.inventory:FindItem(function(item) 
+            return item ~= _inst and
+                item.prefab == _inst.prefab end) ~= nil or 
+                (bag ~= nil and bag ~= _inst and bag.prefab == _inst.prefab) 
+            then
+            grandOwner.components.inventory:DropItem(_inst, true, true) 
+        end
+    end, owner)
+end
+
 local function fn()
     local inst = CreateEntity()
 
@@ -75,7 +90,9 @@ local function fn()
     inst:AddComponent("inventoryitem")
     inst.components.inventoryitem.imagename = "klee_bag"
     inst.components.inventoryitem.atlasname = "images/inventoryimages/klee_bag.xml"
-    inst.components.inventoryitem.cangoincontainer = false
+    -- inst.components.inventoryitem.cangoincontainer = false
+    inst.components.inventoryitem.canonlygoinpocket = true
+    inst.components.inventoryitem:SetOnPutInInventoryFn(OnPutInInventory)
 
     inst:AddComponent("equippable")
     inst.components.equippable.equipslot = EQUIPSLOTS.BACK ~= nil and EQUIPSLOTS.BACK or EQUIPSLOTS.BODY

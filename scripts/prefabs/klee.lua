@@ -9,13 +9,12 @@ local assets = {
 	Asset("ANIM", "anim/klee_hat.zip")
 }
 
-local prefabs = {
-	"dococotales"
-}
+local start_inv = {}
+for k, v in pairs(TUNING.GAMEMODE_STARTING_ITEMS) do
+    start_inv[string.lower(k)] = v.KLEE
+end
 
-local starting_inventory = {
-	"dococotales"
-}
+local prefabs = FlattenTree(start_inv, true)
 
 local skillkeys = {
     TUNING.ELEMENTALSKILL_KEY,
@@ -48,16 +47,31 @@ local function OnDeath(inst)
 	end
 end
 
+local function OnEquip(inst, data)
+	if data ~= nil and data.item ~= nil and data.eslot == EQUIPSLOTS.HANDS and data.item:HasTag("genshin_catalyst") then
+		-- print("set attack period")
+		inst.components.combat:SetAttackPeriod(TUNING.KLEE_ATK_CD)
+	end
+end
+
+local function OnUnequip(inst, data)
+	if data ~= nil and data.item ~= nil and data.eslot == EQUIPSLOTS.HANDS then
+		-- 切换回到默认的攻击速度
+		-- print("unset attack period")
+		inst.components.combat:SetAttackPeriod(0.5)
+	end
+end
+
 -- 这个函数主客机都运行
 local function ChargeSGFn(inst)
 	if TheWorld.ismastersim then
 		local weapon = inst.components.combat ~= nil and inst.components.combat:GetWeapon() or nil
-		if weapon == nil then
+		if weapon == nil or (not weapon:HasTag("genshin_catalyst")) then
 			return "attack"
 		end
 	else
 		local equip = inst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS) or nil
-		if equip == nil then
+		if equip == nil or (not equip:HasTag("genshin_catalyst")) then
 			return "attack"
 		end
 	end
@@ -68,6 +82,11 @@ local function AttackDecorator(func)
 	local function InnerDecorator(inst, target, instancemult, ischarge)
 		print("target:", type(target), target, "instancemult:", instancemult, "ischarge:", ischarge)
 		if inst.components.constellation:GetActivatedLevel() >= 1 then
+			-- 这里应该是设定成释放技能和攻击都进行一次协同攻击
+			-- 但是可莉释放技能，现在是没有目标的，无法将协同攻击绑定并释放
+			-- 所以先判断一下目标是不是一个有效的对象，来让效果暂时只在普攻时生效
+			-- 这里是打算进行一次一定范围的目标搜索，
+			-- 并且可以达成打到莫名奇妙的东西上达成血压上升
 			if type(target) == "table" and math.random() < 0.25 then
 				local spark = SpawnPrefab("klee_single_spark")
 				spark.Transform:SetPosition(target.Transform:GetWorldPosition())
@@ -164,7 +183,7 @@ local function elementalburstfn(inst)
 	end
 	local SparksnSplashEffect = function ()
 		local x, y, z = inst.Transform:GetWorldPosition()
-		local ents = TheSim:FindEntities(x, y, z, 8, {"_combat"}, {"INLIMBO", "player", "chester", "companion", "wall"})
+		local ents = TheSim:FindEntities(x, y, z, 8, {"_combat"}, TUNING.KLEE_AREA_ATK_NOTAGS)
 		local targets = {}
 		for i, v in ipairs(ents) do
 			if v ~= inst and v ~= inst.SparksnSplash then
@@ -382,15 +401,15 @@ local master_postinit = function(inst)
 	inst.components.health:SetMaxHealth(TUNING.KLEE_HEALTH)
 	inst.components.hunger:SetMax(TUNING.KLEE_HUNGER)
 	inst.components.sanity:SetMax(TUNING.KLEE_SANITY)
+	inst.components.hunger.hungerrate = TUNING.WILSON_HUNGER_RATE
 
 	-- 初始物品
-	inst.starting_inventory = starting_inventory
-
-	inst.components.hunger.hungerrate = TUNING.WILSON_HUNGER_RATE
+	inst.starting_inventory = start_inv.default
 
 	inst.components.combat:SetDefaultDamage(TUNING.KLEE_BASEATK)
 	inst.components.combat.damagemultiplier = 1
 	inst.components.combat.damagebonus = 0
+	inst.components.combat:SetAttackPeriod(2)
 
 	inst.components.combat.overrideattackkeyfn = AttackkeyFn
 
@@ -407,6 +426,10 @@ local master_postinit = function(inst)
 	-- 监听器 处理天赋
 	inst:ListenForEvent("damagecalculated", NewTalentsObject())
 	inst:ListenForEvent("death", OnDeath)
+
+	-- 监听器 处理装备上法器时的攻速调整
+	inst:ListenForEvent("equip", OnEquip)
+	inst:ListenForEvent("unequip", OnUnequip)
 end
 
 return MakePlayerCharacter("klee", prefabs, assets, common_postinit, master_postinit)

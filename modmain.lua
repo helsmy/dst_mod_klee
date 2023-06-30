@@ -116,6 +116,8 @@ TUNING.KLEE_SKILL_ELEBURST =
     DMG =            {0.426, 0.458, 0.490, 0.533, 0.565, 0.597, 0.640, 0.682, 0.725, 0.768, 0.810, 0.852, 0.906, 0.959, 0.959},
 }
 
+TUNING.KLEE_AREA_ATK_NOTAGS = {"FX", "NOCLICK", "DECOR", "INLIMBO", "player", "playerghost", "companion", "abigail", "wall"}
+
 TUNING.KLEE_SKILL_NORMALATK_SORT = 
 {
     "ATK_DMG",
@@ -187,12 +189,17 @@ TUNING.KLEE_HUNGER = 150
 TUNING.KLEE_SANITY = 150
 
 TUNING.KLEE_BASEATK = 10
+TUNING.KLEE_ATK_CD = 5
 
 -- 初始物品
-TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KLEE = {"dococotales"}
+TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KLEE = {"dococotales", "klee_bag"}
 TUNING.STARTING_ITEM_IMAGE_OVERRIDE.dococotales = {
 	atlas = "images/inventoryimages/dococotales.xml",
 	image = "dococotales.tex"
+}
+TUNING.STARTING_ITEM_IMAGE_OVERRIDE.klee_bag = {
+	atlas = "images/inventoryimages/klee_bag.xml",
+	image = "klee_bag.tex"
 }
 
 -- 武器

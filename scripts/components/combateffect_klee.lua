@@ -1,4 +1,4 @@
-local CANT_TAGS = {"INLIMBO", "player", "chester", "companion", "wall"}
+local CANT_TAGS = TUNING.KLEE_AREA_ATK_NOTAGS
 
 local function ShakeCamera(self)
 	for i, v in ipairs(AllPlayers) do
