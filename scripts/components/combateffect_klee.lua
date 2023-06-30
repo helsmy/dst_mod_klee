@@ -37,11 +37,6 @@ end
 
 function CombatEffect_klee:DoAreaAttack(pos, region, instmulti, GainEnergy)
 	local ents = TheSim:FindEntities(pos[1], pos[2], pos[3], region, {"_combat"}, CANT_TAGS)
-
-    if ents ~= nil then
-        self.inst.components.energyrecharge:GainEnergy(GainEnergy)
-    end
-
     -- area attack
     local old_state = self.inst.components.combat.ignorehitrange
 	self.inst.components.combat.ignorehitrange = true

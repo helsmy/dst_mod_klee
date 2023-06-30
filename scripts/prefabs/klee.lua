@@ -278,12 +278,11 @@ local function NewTalentsObject()
 	local last_time = GetTime()
 	-- 天赋 砰砰礼物
 	local function PoundingSurprise(inst, data)
+		if inst.explosive_spark then return end
 		local now = GetTime()
 		if math.random() < 0.5 then return end
-		
-		if now - last_time < 5 then
-			return
-		end
+		if now - last_time < 5 then return end
+
 		inst.explosive_spark = SpawnPrefab("explosive_spark")
 		inst.explosive_spark.Follower:FollowSymbol(inst.GUID, "swap_body", 0, 0, 0)
 		last_time = now

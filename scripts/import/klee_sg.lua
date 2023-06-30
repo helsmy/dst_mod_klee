@@ -331,6 +331,7 @@ local klee_elementalskill = State{
             CastJumpyDumpty(inst, 1, function (jumpy, attacker)
                 local x, y, z = jumpy.Transform:GetWorldPosition()
                 local pos = {x, y, z}
+                attacker.components.energyrecharge:GainEnergy(2)
                 inst.components.combateffect_klee:DoAttackAndExplode(pos, 4, TUNING.KLEE_SKILL_ELESKILL.DMG[attacker.components.talents:GetTalentLevel(2)],8)
             end)
         end),
