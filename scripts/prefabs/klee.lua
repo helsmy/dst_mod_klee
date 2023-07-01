@@ -290,7 +290,7 @@ local function NewTalentsObject()
 
 	-- 天赋 火花无限 暴击充能
 	local function SparklingBurst(inst, data)
-		if not data.crit then return end
+		if data.attackkey ~= "charge" or (not data.crit) then return end
 		for i, v in pairs(AllPlayers) do
 			if v.components.energyrecharge then
 				v.components.energyrecharge:GainEnergy(2)
