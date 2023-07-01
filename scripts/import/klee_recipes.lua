@@ -23,7 +23,7 @@ local Recipes = {
 			Ingredient("papyrus", 5),
             Ingredient("feather_canary", 1),
             Ingredient("featherpencil", 1),
-
+            Ingredient("redgem", 1)
         },
         level = TECH.SCIENCE_TWO,
         atlas = "images/inventoryimages/dococo_refinement.xml",

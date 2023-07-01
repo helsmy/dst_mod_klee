@@ -136,10 +136,12 @@ local function CustomAttackFn(inst, target, instancemult, ischarge)
 	if not ischarge then
 		-- 临时将符合条件的武器的投射物设成可莉的投射物
 		-- 这样可莉的普攻就永远是一样的了
-		local old_proj = weapon.components.weapon.projectile
-		weapon.components.weapon:SetProjectile("klee_proj")
-		inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
-		weapon.components.weapon:SetProjectile(old_proj)
+		inst:DoTaskInTime(0.2, function ()
+			local old_proj = weapon.components.weapon.projectile
+			weapon.components.weapon:SetProjectile("klee_proj")
+			inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
+			weapon.components.weapon:SetProjectile(old_proj)
+		end)
 	end
 end
 

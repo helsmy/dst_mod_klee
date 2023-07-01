@@ -324,7 +324,7 @@ local klee_elementalskill = State{
             -- fx.Transform:SetPosition(x + math.cos(-facingangle) * 2.5, 1.5, z + math.sin(-facingangle) * 2.5)
         end),
 
-        TimeEvent(2 * FRAMES, function(inst)
+        TimeEvent(18 * FRAMES, function(inst)
             -- local x, y, z = inst.Transform:GetWorldPosition()
             -- local facingangle = inst.Transform:GetRotation() * DEGREES
             -- local facedirection = Vector3(math.cos(-facingangle), 0, math.sin(-facingangle))
@@ -336,7 +336,7 @@ local klee_elementalskill = State{
             end)
         end),
 
-        TimeEvent(7 * FRAMES, function(inst)
+        TimeEvent(20 * FRAMES, function(inst)
             inst.sg:RemoveStateTag("nointerrupt")
             inst.sg:RemoveStateTag("pausepredict")
             inst.sg:RemoveStateTag("nosleep")
@@ -399,7 +399,7 @@ local klee_elementalskill_client = State{
 
     timeline=
     {
-        TimeEvent(7 * FRAMES, function(inst)
+        TimeEvent(20 * FRAMES, function(inst)
             inst.sg:RemoveStateTag("nointerrupt")
             inst.sg:RemoveStateTag("nosleep")
             inst.sg:RemoveStateTag("nofreeze")
