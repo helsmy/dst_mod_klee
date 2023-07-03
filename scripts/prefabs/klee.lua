@@ -124,7 +124,7 @@ end
 
 local function CustomAttackFn(inst, target, instancemult, ischarge)
 	-- assets(false, "CustomAttackFn breakpoint")
-	-- print("attack status:", ischarge)
+	print("attack status:", ischarge)
 	-- print("attack status chargesgname:", FunctionOrValue(inst.chargesgname, inst))
 	-- print("attack status cancharge:", inst.cancharge)
 	local weapon = inst.components.combat:GetWeapon()
@@ -136,12 +136,11 @@ local function CustomAttackFn(inst, target, instancemult, ischarge)
 	if not ischarge then
 		-- 临时将符合条件的武器的投射物设成可莉的投射物
 		-- 这样可莉的普攻就永远是一样的了
-		inst:DoTaskInTime(0.2, function ()
-			local old_proj = weapon.components.weapon.projectile
-			weapon.components.weapon:SetProjectile("klee_proj")
-			inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
-			weapon.components.weapon:SetProjectile(old_proj)
-		end)
+		local old_proj = weapon.components.weapon.projectile
+		weapon.components.weapon:SetProjectile("klee_proj")
+		inst.components.combat:DoAttack(target, nil, nil, nil, instancemult)
+		weapon.components.weapon:SetProjectile(old_proj)
+		return
 	end
 end
 

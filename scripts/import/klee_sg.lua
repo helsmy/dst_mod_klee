@@ -1,4 +1,5 @@
 local CANT_TAGS = TUNING.KLEE_AREA_ATK_NOTAGS
+local chargeattack_timeout = 36 * FRAMES
 
 local function MakeMine(inst_spawner, attacker, mx, mz, cd)
     local x, y, z = inst_spawner.Transform:GetWorldPosition()
@@ -101,6 +102,8 @@ local function CastJumpyDumpty(caster, count, onhitfn)
             proj.Transform:SetPosition(inst.Transform:GetWorldPosition())
             proj.components.complexprojectile:Launch(target:GetPosition(), attacker)
         else
+            -- 可莉 E 100% 产4球
+            attacker.components.energyrecharge:GainEnergy(8)
             local ents = TheSim:FindEntities(x, y, z, 800, {"klee_mine"})
             for i, v in ipairs(ents) do
                 v:PushEvent("Explode")
@@ -128,48 +131,75 @@ local klee_chargeattack = State{
             return
         end
 
-        if inst.components.playercontroller ~= nil then
-            inst.components.playercontroller:Enable(false)
+        -- 改成和雷电将军一样的处理
+        if inst.sg.laststate == inst.sg.currentstate then
+            inst.sg.statemem.chained = true
         end
+        local buffaction = inst:GetBufferedAction()
+        local target = buffaction ~= nil and buffaction.target or nil
+        inst.components.combat:SetTarget(target)
+        inst.components.combat:StartAttack()
         inst.components.locomotor:Stop()
-        inst.components.locomotor:Clear()
-        inst:ClearBufferedAction()
-        
+
+        inst.sg:SetTimeout(chargeattack_timeout)
+
+        if target ~= nil then
+            inst.components.combat:BattleCry()
+            if target:IsValid() then
+                inst:FacePoint(target:GetPosition())
+                inst.sg.statemem.attacktarget = target
+                inst.sg.statemem.retarget = target
+            end
+        end
+        inst.sg.statemem.charge_fx = nil
         -- 天赋 砰砰礼物 爆裂火花效果检查
         if inst.explosive_spark then
             -- print("PoundingSurprise take effect")
             inst.components.combat.external_attacktype_multipliers:SetModifier(inst, 0.5, "charge_sparkseffect")
         end
 
-        inst.AnimState:PlayAnimation("klee_charge")
     end,
 
     timeline = (function ()
         local fx = nil
         return {
             TimeEvent(2*FRAMES, function (inst)
+                inst.AnimState:PlayAnimation("klee_charge")
+            end),
+    
+            TimeEvent(4*FRAMES, function (inst)
                 local x, y, z = inst.Transform:GetWorldPosition()
                 local angle = (inst.Transform:GetRotation() + 90) * DEGREES
                 local tx = 6 * math.sin(angle)
                 local tz = 6 * math.cos(angle)
                 fx = SpawnPrefab("klee_charge_fx")
-                fx.Transform:SetPosition(x+tx, y, z+tz)
-                fx.Transform:SetScale(0.7, 0.7, 0.7)
+
+                local attacktarget = inst.sg.statemem.attacktarget
+                if attacktarget ~= nil then
+                    fx.Transform:SetPosition(attacktarget.Transform:GetWorldPosition())
+                else
+                    fx.Transform:SetPosition(x+tx, y, z+tz)
+                end
+                fx.Transform:SetScale(0.5, 0.5, 0.5)
+
+                inst.sg.statemem.charge_fx = fx
             end),
-    
-            TimeEvent(3*FRAMES, function (inst)
+
+            TimeEvent(6*FRAMES, function (inst)
+                fx.Transform:SetScale(0.6, 0.6, 0.6)
+            end),
+
+            TimeEvent(8*FRAMES, function (inst)
                 fx.Transform:SetScale(0.8, 0.8, 0.8)
             end),
-    
-            TimeEvent(4*FRAMES, function (inst)
-                fx.Transform:SetScale(0.9, 0.9, 0.9)
-            end),
-    
-            TimeEvent(5*FRAMES, function (inst)
-                fx.Transform:SetScale(1, 1, 1)
-            end),
-            
+
             TimeEvent(10*FRAMES, function (inst)
+                fx.Transform:SetScale(1, 1, 1)
+                inst:PerformBufferedAction()
+                inst.sg:RemoveStateTag("abouttoattack")
+            end),
+
+            TimeEvent(14*FRAMES, function (inst)
                 local x, y, z = fx.Transform:GetWorldPosition()
                 local pos = {x, y, z}
                 inst.SoundEmitter:PlaySound("dontstarve/creatures/together/toad_stool/spore_explode")
@@ -191,23 +221,32 @@ local klee_chargeattack = State{
                 inst.sg:RemoveStateTag("notalking")
                 inst.sg:RemoveStateTag("autopredict")
             end),
-    
-            -- 延迟2帧退出状态保证嘟可可故事集能检测到重击
-            TimeEvent(12*FRAMES, function (inst)
-                inst.sg:RemoveStateTag("chargeattack")
-                inst.sg:RemoveStateTag("attack")
+
+            TimeEvent(28*FRAMES, function (inst)
                 fx:Remove()
                 fx = nil
             end),
+    
+            TimeEvent(30*FRAMES, function (inst)
+                inst.sg:RemoveStateTag("chargeattack")
+                inst.sg:RemoveStateTag("attack")
+        end),
         }
     end)(),
 
+    ontimeout = function(inst)
+        inst.sg:RemoveStateTag("attack")
+        inst.sg:AddStateTag("idle")
+    end,
+
     events = {
-        EventHandler("animqueueover", function(inst)
-            if inst.AnimState:AnimDone() then
-                inst.sg:GoToState("idle")
-            end
-        end),
+        EventHandler("equip", function(inst) inst.sg:GoToState("idle") end),
+        EventHandler("unequip", function(inst) inst.sg:GoToState("idle") end),
+        -- EventHandler("animqueueover", function(inst)
+        --     if inst.AnimState:AnimDone() then
+        --         inst.sg:GoToState("idle")
+        --     end
+        -- end),
     },
 
     onexit = function(inst)
@@ -216,9 +255,17 @@ local klee_chargeattack = State{
         inst.sg:RemoveStateTag("autopredict")
         inst.sg:RemoveStateTag("chargeattack")
         inst.sg:RemoveStateTag("attack")
-        inst.sg:RemoveStateTag("abouttoattack")
-        if inst.components.playercontroller ~= nil then
-            inst.components.playercontroller:Enable(true)
+        if inst.sg.statemem.oripos ~= nil then
+            inst.Transform:SetPosition(inst.sg.statemem.oripos:Get())
+        end
+        if inst.sg.statemem.charge_fx ~= nil then
+            inst.sg.statemem.charge_fx:Remove()
+            inst.sg.statemem.charge_fx = nil
+        end
+
+        inst.components.combat:SetTarget(nil)
+        if inst.sg:HasStateTag("abouttoattack") then
+            inst.components.combat:CancelAttack()
         end
     end,
 }
@@ -229,6 +276,8 @@ local klee_chargeattack_client = State{
 
     onenter = function(inst)
         -- print("DoChargedAttack")
+        -- 这里也改成和雷电将军一样的
+        local buffaction = inst:GetBufferedAction()
         if inst.replica.combat ~= nil then
             if inst.replica.combat:InCooldown() then
                 inst.sg:RemoveStateTag("abouttoattack")
@@ -238,45 +287,60 @@ local klee_chargeattack_client = State{
             end
             inst.replica.combat:StartAttack()
         end
-        if inst.components.playercontroller ~= nil then
-            inst.components.playercontroller:Enable(false)
+        if inst.sg.laststate == inst.sg.currentstate then
+            inst.sg.statemem.chained = true
         end
         inst.components.locomotor:Stop()
-        inst.components.locomotor:Clear()
-        inst:ClearBufferedAction()
-        inst.AnimState:PlayAnimation("klee_charge")
+
+        if buffaction ~= nil then
+            inst:PerformPreviewBufferedAction()
+
+            if buffaction.target ~= nil and buffaction.target:IsValid() then
+                inst:FacePoint(buffaction.target:GetPosition())
+                inst.sg.statemem.attacktarget = buffaction.target
+                inst.sg.statemem.retarget = buffaction.target
+            end
+        end
+
+        inst.sg:SetTimeout(chargeattack_timeout)
     end,
 
     timeline = 
-    {
-        TimeEvent(12*FRAMES, function (inst)
+    {        
+        TimeEvent(2*FRAMES, function (inst)
+            inst.AnimState:PlayAnimation("klee_charge", false)
+        end),
+
+        TimeEvent(10*FRAMES, function (inst)
+            inst.sg:RemoveStateTag("abouttoattack")
+        end),
+
+        TimeEvent(30*FRAMES, function (inst)
             inst.sg:RemoveStateTag("nointerrupt")
             inst.sg:RemoveStateTag("notalking")
             inst.sg:RemoveStateTag("autopredict")
             inst.sg:RemoveStateTag("chargeattack")
             inst.sg:RemoveStateTag("attack")
-            inst.sg:RemoveStateTag("abouttoattack")
         end),
     },
 
+    ontimeout = function(inst)
+        inst.sg:RemoveStateTag("attack")
+        inst.sg:AddStateTag("idle")
+    end,
+
     events = {
-        EventHandler("animqueueover", function(inst)
-            if inst.AnimState:AnimDone() then
-                inst.sg:GoToState("idle")
-            end
-        end),
+        -- EventHandler("animqueueover", function(inst)
+        --     if inst.AnimState:AnimDone() then
+        --         inst.sg:GoToState("idle")
+        --     end
+        -- end),
     },
 
     onexit = function(inst)
-        if inst.components.playercontroller ~= nil then
-            inst.components.playercontroller:Enable(true)
+        if inst.sg:HasStateTag("abouttoattack") and inst.replica.combat ~= nil then
+            inst.replica.combat:CancelAttack()
         end
-        inst.sg:RemoveStateTag("nointerrupt")
-        inst.sg:RemoveStateTag("notalking")
-        inst.sg:RemoveStateTag("autopredict")
-        inst.sg:RemoveStateTag("chargeattack")
-        inst.sg:RemoveStateTag("attack")
-        inst.sg:RemoveStateTag("abouttoattack")
     end,
 }
 
@@ -331,7 +395,6 @@ local klee_elementalskill = State{
             CastJumpyDumpty(inst, 1, function (jumpy, attacker)
                 local x, y, z = jumpy.Transform:GetWorldPosition()
                 local pos = {x, y, z}
-                attacker.components.energyrecharge:GainEnergy(2)
                 inst.components.combateffect_klee:DoAttackAndExplode(pos, 4, TUNING.KLEE_SKILL_ELESKILL.DMG[attacker.components.talents:GetTalentLevel(2)],8)
             end)
         end),

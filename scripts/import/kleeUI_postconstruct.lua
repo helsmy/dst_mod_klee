@@ -37,7 +37,6 @@ AddClassPostConstruct("widgets/controls",function(self)
                 return
             end
             local valid, pos = pcall(function() return json.decode(str).position end)
-            print(pos)
             if not valid then
                 return
             end

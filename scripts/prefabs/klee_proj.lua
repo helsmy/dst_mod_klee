@@ -5,6 +5,7 @@ local assets = {
 local prefabs = {"explode_small"}
 
 local function OnHit(inst, attacker, target)
+	-- print("instancemult: ", inst.components.projectile.instancemult)
 	local x, y, z = inst.Transform:GetWorldPosition()
 	local pos = {x, y, z}
 	inst.SoundEmitter:KillSound("hiss")
