@@ -30,6 +30,18 @@ local Recipes = {
         image = "dococo_refinement.tex",
         filters = { "WEAPONS", "CHARACTER" },
     },
+    {
+        name = "apprentices_notes",
+        ingredients = 
+        {
+			Ingredient("papyrus", 3),
+            Ingredient("featherpencil", 1),
+        },
+        level = TECH.SCIENCE_ONE,
+        atlas = "images/inventoryimages/apprentices_notes.xml",
+        image = "apprentices_notes.tex",
+        filters = { "WEAPONS", "CHARACTER" },
+    },
 
     ---------------------------精炼-----------------------------
     --命之座

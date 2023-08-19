@@ -107,10 +107,8 @@ local function fn()
 	inst:AddTag("sharp")
     inst:AddTag("pointy")
 
-	MakeInventoryFloatable(inst)
-
 	inst:AddTag("weapon")
-	inst:AddTag("chargeattack_weapon")
+	-- inst:AddTag("chargeattack_weapon")
 	-- thrown tag 能让元素反应的重击处理失效，真神奇
 	-- inst:AddTag("thrown")
 
@@ -123,6 +121,8 @@ local function fn()
     inst.subtext = "atk"
     inst.subnumber = "55.1%"
     inst.description = TUNING.WEAPONEFFECT_DOCOCOTALES_DESC
+
+	MakeInventoryFloatable(inst, "med", 0.05, {1.1, 0.5, 1.1}, true, -9)
 
 	inst.entity:SetPristine()
 

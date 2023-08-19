@@ -183,11 +183,11 @@ function elementalskill_badge:OnUpdate(dt)
         self.key_bg:Show()
         self.key_text:Show()
         if cd > 0 then
+            self.skillcd:SetString(string.format("%.1f", cd))
+            self.skillcdanim:GetAnimState():SetPercent("recharge", 1 - cd/self.totalcd)
+            self.skillcd:Show()
+            self.skillcdanim:Show()
             if elementalcaster.count == 0 then
-                self.skillcd:SetString(string.format("%.1f", cd))
-                self.skillcdanim:GetAnimState():SetPercent("recharge", 1 - cd/self.totalcd)
-                self.skillcd:Show()
-                self.skillcdanim:Show()
                 self.images[1]:Show()
                 self.images[2]:Hide()
                 self.images[3]:Hide()
@@ -197,6 +197,7 @@ function elementalskill_badge:OnUpdate(dt)
                     v:Hide()
                 end
                 self.images[elementalcaster.count+1]:Show()
+                self.images[elementalcaster.count+1]:SetTint(1, 1, 1, 0.9)
             end
         else
             -- 冷却完成增加战技数量

@@ -29,7 +29,11 @@ if language == 1 then
 
 	STRINGS.NAMES.KLEE = "Klee"
 	STRINGS.SKIN_NAMES.klee_none = "Klee"
-
+	
+	STRINGS.NAMES.APPRENTICES_NOTES = "Apprentice's Notes"
+	STRINGS.CHARACTERS.GENERIC.DESCRIBE.APPRENTICES_NOTES = "With words, this book records learning, experiments, and incantations.\nWith the spaces between words, it records a student's striving. "
+	STRINGS.RECIPE_DESC.APPRENTICES_NOTES = "With words, this book records learning, experiments, and incantations.\nWith the spaces between words, it records a student's striving. "
+	
 	STRINGS.NAMES.KLEE_STELLA = "Klee's Stella Fortuna"
 	STRINGS.NAMES.DOCOCOTALES = "Dodoco Tales"
 	STRINGS.NAMES.DOCOCO_REFINEMENT = "Fragments of Innocence"
@@ -49,6 +53,10 @@ elseif language == 2 then
 
 	STRINGS.NAMES.KLEE = "可莉"
 	STRINGS.SKIN_NAMES.klee_none = "可莉"
+	
+	STRINGS.NAMES.APPRENTICES_NOTES = "学徒笔记"
+	STRINGS.CHARACTERS.GENERIC.DESCRIBE.APPRENTICES_NOTES = "某个优等生留下的学习笔记，娟秀的字迹非常好看。记录了不少实用的咒语。"
+	STRINGS.RECIPE_DESC.APPRENTICES_NOTES = "某个优等生留下的学习笔记，娟秀的字迹非常好看。记录了不少实用的咒语。"
 
 	STRINGS.NAMES.KLEE_STELLA = "可莉的命星"
 	STRINGS.NAMES.DOCOCOTALES = "嘟嘟可故事集"

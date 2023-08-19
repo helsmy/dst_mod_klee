@@ -2,7 +2,8 @@ PrefabFiles = {
 	-- 人物
 	"klee", "klee_none", 
 	-- 武器
-	"klee_proj", "dococotales", "fragments_of_innocence", "klee_bag",
+	"klee_proj", "dococotales", "fragments_of_innocence", 
+	"klee_bag", "apprentices_notes",
 	-- 元素战技
 	"jumpy_dumpty", "minebomb",
 	-- 元素爆发
@@ -75,6 +76,10 @@ Assets = {
 	-- 背包地图图标
 	Asset( "IMAGE", "images/map_icons/klee_bag_map.tex" ),
 	Asset( "ATLAS", "images/map_icons/klee_bag_map.xml" ),
+
+	-- 童真的断章 图标
+	Asset("IMAGE", "images/inventoryimages/dococo_refinement.tex"),
+	Asset("ATLAS", "images/inventoryimages/dococo_refinement.xml"),
 }
 
 AddMinimapAtlas("images/map_icons/klee.xml")
@@ -192,11 +197,7 @@ TUNING.KLEE_BASEATK = 10
 TUNING.KLEE_ATK_CD = 1
 
 -- 初始物品
-TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KLEE = {"dococotales", "klee_bag"}
-TUNING.STARTING_ITEM_IMAGE_OVERRIDE.dococotales = {
-	atlas = "images/inventoryimages/dococotales.xml",
-	image = "dococotales.tex"
-}
+TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KLEE = {"klee_bag"}
 TUNING.STARTING_ITEM_IMAGE_OVERRIDE.klee_bag = {
 	atlas = "images/inventoryimages/klee_bag.xml",
 	image = "klee_bag.tex"
