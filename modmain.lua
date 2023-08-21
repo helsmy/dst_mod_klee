@@ -190,8 +190,8 @@ modimport("scripts/import/klee_recipes.lua")
 
 -- 人物属性
 TUNING.KLEE_HEALTH = GetModConfigData("hp") or 150
-TUNING.KLEE_HUNGER = 150
-TUNING.KLEE_SANITY = 150
+TUNING.KLEE_HUNGER = 100
+TUNING.KLEE_SANITY = 200
 
 TUNING.KLEE_BASEATK = 10
 TUNING.KLEE_ATK_CD = 1

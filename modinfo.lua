@@ -1,7 +1,7 @@
 name = "Klee modify remaster"
 description = [[
-genshin character klee
-原神角色可莉
+genshin character klee (A personal modified version)
+原神角色可莉 个人修改版
 ]]
 author = "Cá Khô/helsmy"
 version = "0.1.0"
